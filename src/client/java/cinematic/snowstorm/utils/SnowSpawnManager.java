@@ -33,7 +33,7 @@ public class SnowSpawnManager {
             if (!(world instanceof ClientWorld)) return;
 
             // Track player velocity for prediction
-            Vec3d currentPos = mc.player.getPos();
+            Vec3d currentPos = mc.player.getEntityPos();
             Vec3d currentVelocity = currentPos.subtract(lastPlayerPos);
 
             // Smooth velocity to avoid jitter
@@ -79,7 +79,7 @@ public class SnowSpawnManager {
                     double vz = playerVelocity.z * 0.5;
 
                     // Use alwaysSpawn flag to force rendering at distance
-                    world.addImportantParticle(
+                    world.addImportantParticleClient(
                             ParticleTypes.MY_SNOWFLAKE,
                             true,  // alwaysSpawn - bypasses distance check!
                             dx, dy, dz,

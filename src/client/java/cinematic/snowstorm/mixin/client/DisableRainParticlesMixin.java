@@ -18,13 +18,11 @@ public class DisableRainParticlesMixin {
      * Cancel rain splash particles that appear when rain hits the ground
      */
     @Inject(
-            method = "addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V",
+            method = "addParticle(DDDDDLnet/minecraft/particle/ParticleEffect;)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void disableRainDrips(ParticleEffect parameters, double x, double y, double z,
-                                  double velocityX, double velocityY, double velocityZ,
-                                  CallbackInfo ci) {
+    private void disableRainDrips(double minX, double maxX, double minZ, double maxZ, double y, ParticleEffect parameters, CallbackInfo ci) {
         // Cancel rain splash and drip particles
         if (parameters.getType() == ParticleTypes.RAIN ||
                 parameters.getType() == ParticleTypes.DRIPPING_WATER) {

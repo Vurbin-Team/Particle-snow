@@ -2,15 +2,21 @@ package cinematic.snowstorm.particle;
 
 import cinematic.snowstorm.utils.SnowSpawnManager;
 import cinematic.snowstorm.config.SnowfallConfig;
-import net.minecraft.client.particle.SpriteBillboardParticle;
-import net.minecraft.client.particle.ParticleTextureSheet;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.SpriteProvider;
+import net.minecraft.client.particle.BillboardParticle;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
+import org.jetbrains.annotations.Nullable;
 
-public class MySnowflakeParticle extends SpriteBillboardParticle {
+@Environment(EnvType.CLIENT)
+public class MySnowflakeParticle extends BillboardParticle {
     // Physics constants
     private static final float GRAVITY_MULTIPLIER = 0.008f;
     private static final float FADE_START_RATIO = 0.90f;
@@ -28,11 +34,14 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
     // Wind and drift
     private float windStrength;
 
+    // Store initial alpha for fade calculations
+    private final float initialAlpha;
+
     protected MySnowflakeParticle(ClientWorld world,
                                   double x, double y, double z,
                                   double vx, double vy, double vz,
-                                  SpriteProvider spriteProvider) {
-        super(world, x, y, z, vx, vy, vz);
+                                  Sprite sprite) {
+        super(world, x, y, z, vx, vy, vz, sprite);
 
         // Unique oscillation patterns for each snowflake - using config values
         this.amplitudeX = SnowfallConfig.SWAY_AMOUNT_MIN +
@@ -48,7 +57,7 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         // Wind variation - using config (strength varies, but direction is shared)
         this.windStrength = SnowfallConfig.WIND_MIN + world.random.nextFloat() * (SnowfallConfig.WIND_MAX - SnowfallConfig.WIND_MIN);
 
-        this.setSpriteForAge(spriteProvider);
+        // Gravity strength
         this.gravityStrength = 0.40f + world.random.nextFloat() * 0.15f;
 
         // Using config values for size
@@ -59,19 +68,31 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         this.velocityZ = vz + (world.random.nextDouble() - 0.5) * 0.015;
         this.velocityY = -(SnowfallConfig.FALL_SPEED_MIN + world.random.nextDouble() * (SnowfallConfig.FALL_SPEED_MAX - SnowfallConfig.FALL_SPEED_MIN));
 
-        // Using config values for alpha
-        this.alpha = SnowfallConfig.ALPHA_MIN + world.random.nextFloat() * (SnowfallConfig.ALPHA_MAX - SnowfallConfig.ALPHA_MIN);
+        // Using config values for alpha and color
+        this.initialAlpha = SnowfallConfig.ALPHA_MIN + world.random.nextFloat() * (SnowfallConfig.ALPHA_MAX - SnowfallConfig.ALPHA_MIN);
+        this.alpha = this.initialAlpha;
 
-        // Set particle lifetime (15 sec)
+        // Set color to white for snow
+        this.red = 1.0f;
+        this.green = 1.0f;
+        this.blue = 1.0f;
+
+        // Set particle lifetime (15 sec = 300 ticks)
         this.maxAge = 300;
+
+        // Ensure the particle collides with world
+        this.collidesWithWorld = true;
     }
 
     @Override
     public void tick() {
-        // Store previous position
-        this.prevPosX = this.x;
-        this.prevPosY = this.y;
-        this.prevPosZ = this.z;
+        // Store previous position (for rendering interpolation)
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.lastZ = this.z;
+
+        // Store previous rotation for smooth interpolation
+        this.lastZRotation = this.zRotation;
 
         // Age the particle
         if (this.age++ >= this.maxAge) {
@@ -82,7 +103,7 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         // Fade out near end of life
         if (this.age > this.maxAge * FADE_START_RATIO) {
             float fadeProgress = (this.age - this.maxAge * FADE_START_RATIO) / (this.maxAge * (1.0f - FADE_START_RATIO));
-            this.alpha = (SnowfallConfig.ALPHA_MIN + (SnowfallConfig.ALPHA_MAX - SnowfallConfig.ALPHA_MIN) * 0.5f) * (1.0f - fadeProgress);
+            this.alpha = this.initialAlpha * (1.0f - fadeProgress);
         }
 
         // Apply gravity with variation
@@ -113,8 +134,8 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         float cosZ = (float)Math.cos(t * 1.2f + seedZ);
 
         // Apply oscillations directly to position (this is fine for sway)
-        float swayOffsetX = sinX * amplitudeX;
-        float swayOffsetZ = cosZ * amplitudeZ;
+        float swayOffsetX = sinX * amplitudeX * 0.01f; // Scale down the sway for movement
+        float swayOffsetZ = cosZ * amplitudeZ * 0.01f;
 
         // Apply movement with sway
         this.move(this.velocityX + swayOffsetX, this.velocityY, this.velocityZ + swayOffsetZ);
@@ -125,43 +146,59 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
             return;
         }
 
-        // Rotation for visual effect
-        this.angle += rotationSpeed;
+        // Rotation for visual effect (using zRotation instead of angle)
+        this.zRotation += rotationSpeed;
     }
 
     @Override
-    public ParticleTextureSheet getType() {
-        return ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT;
+    protected RenderType getRenderType() {
+        return RenderType.PARTICLE_ATLAS_TRANSLUCENT;
     }
 
     @Override
-    public int getBrightness(float tint) {
-        // Full brightness for snow
-        return 15728880;
+    protected int getBrightness(float tint) {
+        // Full brightness for snow (maximum light level)
+        // Light level format: sky light (upper 4 bits) | block light (lower 4 bits)
+        // 15 << 20 = sky light at max, 15 << 4 = block light at max
+        return 15728880; // 0xF000F0 in hex
     }
 
-    // Optional: Method to change wind direction dynamically
+    /**
+     * Optional: Method to change wind direction dynamically
+     * @param angleInRadians Wind direction in radians (0 = +X axis)
+     */
     public static void setWindDirection(float angleInRadians) {
         GLOBAL_WIND_ANGLE = angleInRadians;
     }
 
-    public static class Factory implements net.minecraft.client.particle.ParticleFactory<DefaultParticleType> {
+    /**
+     * Get current wind direction
+     * @return Wind direction in radians
+     */
+    public static float getWindDirection() {
+        return GLOBAL_WIND_ANGLE;
+    }
+
+    /**
+     * Factory for creating snowflake particles
+     */
+    @Environment(EnvType.CLIENT)
+    public static class Factory implements ParticleFactory<SimpleParticleType> {
         private final SpriteProvider sprites;
 
         public Factory(SpriteProvider spriteProvider) {
             this.sprites = spriteProvider;
         }
 
+        @Nullable
         @Override
-        public Particle createParticle(DefaultParticleType type,
-                                       ClientWorld world,
-                                       double x, double y, double z,
-                                       double vx, double vy, double vz) {
-            MySnowflakeParticle particle = new MySnowflakeParticle(
-                    world, x, y, z, vx, vy, vz, sprites
+        public Particle createParticle(SimpleParticleType parameters, ClientWorld world, double x, double y, double z, double vx, double vy, double vz, Random random) {
+            // Get a random sprite from the sprite provider
+            Sprite sprite = sprites.getSprite(random);
+
+            return new MySnowflakeParticle(
+                    world, x, y, z, vx, vy, vz, sprite
             );
-            particle.setSprite(sprites.getSprite(world.random));
-            return particle;
         }
     }
 }
