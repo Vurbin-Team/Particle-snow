@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "cinematic.snowstorm.mixin.client",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "BackgroundRendererMixin",
+    "DisableRainParticlesMixin",
+    "ParticleManagerMixin",
+    "WorldRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+	}
+}

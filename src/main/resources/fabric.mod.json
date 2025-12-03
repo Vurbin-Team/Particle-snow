@@ -1,0 +1,45 @@
+{
+	"schemaVersion": 1,
+	"id": "particle-snow",
+	"version": "${version}",
+	"name": "Particle Snow",
+	"description": "A gentle snowfall mod that makes Minecraft winters feel warm, quiet, and comforting. Snow drifts softly around you, creating a peaceful, cozy atmosphere!",
+	"authors": [
+		"Vurbin"
+	],
+	"contact": {},
+	"license": "CC0-1.0",
+	"icon": "assets/cinematic-snowstorm/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"cinematic.snowstorm.CinematicSnowstorm"
+		],
+		"client": [
+			"cinematic.snowstorm.CinematicSnowstormClient"
+		],
+		"fabric-datagen": [
+			"cinematic.snowstorm.CinematicSnowstormDataGenerator"
+		],
+		"modmenu": [
+			"cinematic.snowstorm.modMenu.SnowstormModMenuIntegration"
+		]
+	},
+	"mixins": [
+		"cinematic-snowstorm.mixins.json",
+		{
+			"config": "cinematic-snowstorm.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.1",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": ">=7.0.0",
+		"cloth-config2": ">=11.0.0"
+	}
+}
