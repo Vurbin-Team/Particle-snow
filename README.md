@@ -5,5 +5,4 @@ Also great to have with this mod for configuration:
 - ![cloth-config](https://modrinth.com/mod/cloth-config)
 - ![modmenu](https://modrinth.com/mod/modmenu)
 
-https://github.com/user-attachments/assets/e7d19503-7932-4764-a73b-3314f9ea6284
-
+https://github.com/user-attachments/assets/4f0a5717-d62e-416c-bda1-168e0ac79323
