@@ -1,5 +1,5 @@
 <img width="1020" height="129" alt="minecraft_title" src="https://github.com/user-attachments/assets/99b123fe-9b03-4565-a62f-29e581bc58ad" />
-
+<br><br>
 A gentle snowfall mod that makes Minecraft winters feel warm, quiet, and comforting. Snow drifts softly around you, creating a peaceful, cozy atmosphere!
 
 Also great to have with this mod for configuration:
