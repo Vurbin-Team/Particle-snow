@@ -15,9 +15,6 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
     private static final float GRAVITY_MULTIPLIER = 0.008f;
     private static final float FADE_START_RATIO = 0.90f;
 
-    // Global wind direction (shared by all particles)
-    private static float GLOBAL_WIND_ANGLE = 0.0f; // Direction in radians (0 = +X axis)
-
     // Individual snowflake properties
     private final float amplitudeX;
     private final float amplitudeZ;
@@ -96,8 +93,8 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         this.velocityZ += playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH;
 
         // Apply unified wind force to VELOCITY (not position!)
-        float windForceX = (float)Math.cos(GLOBAL_WIND_ANGLE) * windStrength * 0.002f;
-        float windForceZ = (float)Math.sin(GLOBAL_WIND_ANGLE) * windStrength * 0.002f;
+        float windForceX = (float)Math.cos(SnowfallConfig.GLOBAL_WIND_ANGLE_X) * windStrength * 0.002f;
+        float windForceZ = (float)Math.sin(SnowfallConfig.GLOBAL_WIND_ANGLE_X) * windStrength * 0.002f;
         this.velocityX += windForceX;
         this.velocityZ += windForceZ;
 
@@ -138,11 +135,6 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
     public int getBrightness(float tint) {
         // Full brightness for snow
         return 15728880;
-    }
-
-    // Optional: Method to change wind direction dynamically
-    public static void setWindDirection(float angleInRadians) {
-        GLOBAL_WIND_ANGLE = angleInRadians;
     }
 
     public static class Factory implements net.minecraft.client.particle.ParticleFactory<DefaultParticleType> {

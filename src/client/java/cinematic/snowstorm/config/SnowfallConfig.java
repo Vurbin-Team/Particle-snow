@@ -19,6 +19,8 @@ public class SnowfallConfig {
     public static float FAR_SPAWN_CHANCE = 0.3f;  // 30% spawn far away
     public static int PARTICLES_PER_TICK = 200;
 
+    public static int GLOBAL_WIND_ANGLE_X = 10;
+
     // Ticks between spawn cycles (lower = more frequent)
     public static int SPAWN_INTERVAL = 3;
 
