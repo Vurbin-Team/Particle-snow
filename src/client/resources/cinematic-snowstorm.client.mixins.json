@@ -6,7 +6,8 @@
     "BackgroundRendererMixin",
     "DisableRainParticlesMixin",
     "ParticleManagerMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "WeatherSoundMixin"
   ],
   "injectors": {
     "defaultRequire": 1

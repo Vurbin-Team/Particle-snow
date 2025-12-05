@@ -1,0 +1,18 @@
+{
+  "weather.blizzard.light": {
+    "sounds": [
+      {
+        "name": "cinematic-snowstorm:blizzard_light",
+        "stream": true
+      }
+    ]
+  },
+  "weather.blizzard.heavy": {
+    "sounds": [
+      {
+        "name": "cinematic-snowstorm:blizzard_heavy",
+        "stream": true
+      }
+    ]
+  }
+}
