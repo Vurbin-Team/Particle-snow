@@ -31,4 +31,6 @@ public class SnowfallConfigData {
     public float windMin = 0.5f;
     public float windMax = 1.0f;
     public float rotationSpeed = 0.02f;
+
+    public boolean enableWeatherSound = true;
 }

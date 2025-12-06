@@ -3,6 +3,7 @@ package cinematic.snowstorm;
 import cinematic.snowstorm.config.SnowfallConfigManager;
 import cinematic.snowstorm.particle.MySnowflakeParticle;
 import cinematic.snowstorm.particle.ParticleTypes;
+import cinematic.snowstorm.sounds.AdvancedWeatherSoundManager;
 import cinematic.snowstorm.sounds.ModSounds;
 import cinematic.snowstorm.utils.SnowSpawnManager;
 import net.fabricmc.api.ClientModInitializer;
@@ -13,6 +14,8 @@ public class CinematicSnowstormClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ModSounds.initialize();
+
+		AdvancedWeatherSoundManager.init();
 
 		SnowfallConfigManager.load();
 

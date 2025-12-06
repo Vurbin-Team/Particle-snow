@@ -51,6 +51,14 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
                     .setSaveConsumer(SnowfallConfigManager::applyPreset)
                     .build());
 
+            presets.addEntry(entryBuilder.startBooleanToggle(
+                            Text.literal("Weather Sound"),
+                            config.enableWeatherSound)
+                    .setDefaultValue(true)
+                    .setTooltip(Text.literal("Sound of snowy weather"))
+                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_WEATHER_SOUND = val)
+                    .build());
+
             presets.addEntry(entryBuilder.startTextDescription(
                     Text.literal("§7After selecting a preset, click 'Done' to apply and save")
             ).build());

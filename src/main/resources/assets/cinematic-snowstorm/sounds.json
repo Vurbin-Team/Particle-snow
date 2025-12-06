@@ -3,7 +3,10 @@
     "sounds": [
       {
         "name": "cinematic-snowstorm:blizzard_light",
-        "stream": true
+        "stream": true,
+        "volume": 0.8,
+        "pitch": 1.0,
+        "preload": true
       }
     ]
   },
@@ -11,7 +14,10 @@
     "sounds": [
       {
         "name": "cinematic-snowstorm:blizzard_heavy",
-        "stream": true
+        "stream": true,
+        "volume": 0.8,
+        "pitch": 0.9,
+        "preload": true
       }
     ]
   }
