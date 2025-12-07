@@ -40,6 +40,6 @@
 	},
 	"suggests": {
 		"modmenu": ">=16.0.0-rc.1",
-		"cloth-config": ">=20.0.149"
+		"cloth-config2": ">=20.0.148"
 	}
 }
