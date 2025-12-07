@@ -1,8 +1,10 @@
 package cinematic.snowstorm.mixin.client;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,13 +20,11 @@ public class DisableRainParticlesMixin {
      * Cancel rain splash particles that appear when rain hits the ground
      */
     @Inject(
-            method = "addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V",
+            method = "addParticle(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/particle/ParticleEffect;Z)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void disableRainDrips(ParticleEffect parameters, double x, double y, double z,
-                                  double velocityX, double velocityY, double velocityZ,
-                                  CallbackInfo ci) {
+    private void disableRainDrips(BlockPos pos, BlockState state, ParticleEffect parameters, boolean solidBelow, CallbackInfo ci) {
         // Cancel rain splash and drip particles
         if (parameters.getType() == ParticleTypes.RAIN ||
                 parameters.getType() == ParticleTypes.DRIPPING_WATER) {

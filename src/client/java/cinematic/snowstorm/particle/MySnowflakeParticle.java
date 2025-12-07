@@ -66,9 +66,9 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
     @Override
     public void tick() {
         // Store previous position
-        this.prevPosX = this.x;
-        this.prevPosY = this.y;
-        this.prevPosZ = this.z;
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.lastZ = this.z;
 
         // Age the particle
         if (this.age++ >= this.maxAge) {

@@ -84,7 +84,7 @@ public class SnowSpawnManager {
                     double vz = playerVelocity.z * 0.5;
 
                     // Use alwaysSpawn flag to force rendering at distance
-                    world.addImportantParticle(
+                    world.addImportantParticleClient(
                             ParticleTypes.MY_SNOWFLAKE,
                             true,  // alwaysSpawn - bypasses distance check!
                             dx, dy, dz,
