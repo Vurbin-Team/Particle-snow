@@ -83,6 +83,8 @@ public class SnowfallConfigManager {
         SnowfallConfig.WIND_MIN = configData.windMin;
         SnowfallConfig.WIND_MAX = configData.windMax;
         SnowfallConfig.ROTATION_SPEED = configData.rotationSpeed;
+        SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
+        SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
     }
 
     /**
@@ -109,6 +111,8 @@ public class SnowfallConfigManager {
         configData.windMin = SnowfallConfig.WIND_MIN;
         configData.windMax = SnowfallConfig.WIND_MAX;
         configData.rotationSpeed = SnowfallConfig.ROTATION_SPEED;
+        configData.enableWeatherSound = SnowfallConfig.ENABLE_WEATHER_SOUND;
+        configData.maxParticleCount = SnowfallConfig.MAX_PARTICLE_COUNT;
     }
 
     /**

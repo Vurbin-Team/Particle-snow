@@ -5,6 +5,7 @@
   "client": [
     "DisableRainParticlesMixin",
     "FogRendererMixin",
+    "IncreaseParticleLimitMixin",
     "ParticleManagerMixin",
     "WeatherSoundMixin",
     "WorldRendererMixin"

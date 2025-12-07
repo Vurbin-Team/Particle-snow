@@ -5,7 +5,9 @@ package cinematic.snowstorm.config;
  * Adjust these values to customize your snowfall effect
  */
 public class SnowfallConfig {
-    public static boolean  ENABLE_WEATHER_SOUND= true;
+    // weather sounds
+    public static boolean ENABLE_WEATHER_SOUND = true;
+    public static int MAX_PARTICLE_COUNT = 32000;
 
     // ==== SPAWN SETTINGS ====
 
@@ -19,6 +21,8 @@ public class SnowfallConfig {
     public static int FAR_SPAWN_RADIUS = 120;
     public static float FAR_SPAWN_CHANCE = 0.3f;  // 30% spawn far away
     public static int PARTICLES_PER_TICK = 200;
+
+    public static int GLOBAL_WIND_ANGLE_X = 10;
 
     // Ticks between spawn cycles (lower = more frequent)
     public static int SPAWN_INTERVAL = 3;

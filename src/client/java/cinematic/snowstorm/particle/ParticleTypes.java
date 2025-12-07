@@ -8,7 +8,7 @@ import net.minecraft.util.Identifier;
 
 public class ParticleTypes {
     // Создаем свой тип частицы
-    public static final SimpleParticleType MY_SNOWFLAKE = FabricParticleTypes.simple();
+    public static final SimpleParticleType MY_SNOWFLAKE = FabricParticleTypes.simple(true);
 
     public static void register() {
         System.out.println("-------- Particles registered! --------");

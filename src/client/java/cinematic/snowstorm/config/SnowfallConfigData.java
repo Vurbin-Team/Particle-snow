@@ -11,6 +11,7 @@ public class SnowfallConfigData {
     public float farSpawnChance = 0.3f;
     public int particlesPerTick = 200;
     public int spawnInterval = 3;
+    public int maxParticleCount = 32000;
 
     // Movement Settings
     public float playerFollowStrength = 0.015f;
@@ -31,4 +32,6 @@ public class SnowfallConfigData {
     public float windMin = 0.5f;
     public float windMax = 1.0f;
     public float rotationSpeed = 0.02f;
+
+    public boolean enableWeatherSound = true;
 }
