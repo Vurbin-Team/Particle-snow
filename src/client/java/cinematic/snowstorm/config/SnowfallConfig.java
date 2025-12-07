@@ -5,6 +5,7 @@ package cinematic.snowstorm.config;
  * Adjust these values to customize your snowfall effect
  */
 public class SnowfallConfig {
+    public static boolean  ENABLE_WEATHER_SOUND= true;
 
     // ==== SPAWN SETTINGS ====
 

@@ -6,6 +6,7 @@
     "DisableRainParticlesMixin",
     "FogRendererMixin",
     "ParticleManagerMixin",
+    "WeatherSoundMixin",
     "WorldRendererMixin"
   ],
   "injectors": {
