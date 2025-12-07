@@ -5,9 +5,10 @@
   "client": [
     "BackgroundRendererMixin",
     "DisableRainParticlesMixin",
+    "IncreaseParticleLimitMixin",
     "ParticleManagerMixin",
-    "WorldRendererMixin",
-    "WeatherSoundMixin"
+    "WeatherSoundMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -11,6 +11,7 @@ public class SnowfallConfigData {
     public float farSpawnChance = 0.3f;
     public int particlesPerTick = 200;
     public int spawnInterval = 3;
+    public int maxParticleCount = 32000;
 
     // Movement Settings
     public float playerFollowStrength = 0.015f;

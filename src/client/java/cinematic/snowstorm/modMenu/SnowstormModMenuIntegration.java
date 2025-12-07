@@ -59,6 +59,12 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
                     .setSaveConsumer(val -> SnowfallConfig.ENABLE_WEATHER_SOUND = val)
                     .build());
 
+            presets.addEntry(entryBuilder.startIntField(Text.literal("Particle max count"), config.maxParticleCount)
+                    .setDefaultValue(32000)
+                    .setTooltip(Text.literal("Sound of snowy weather"))
+                    .setSaveConsumer(val -> SnowfallConfig.MAX_PARTICLE_COUNT = val)
+                    .build());
+
             presets.addEntry(entryBuilder.startTextDescription(
                     Text.literal("§7After selecting a preset, click 'Done' to apply and save")
             ).build());
@@ -100,8 +106,8 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
 
             spawn.addEntry(entryBuilder.startIntSlider(
                             Text.literal("Particles Per Tick"),
-                            config.particlesPerTick, 20, 300)
-                    .setDefaultValue(200)
+                            config.particlesPerTick, 20, 500)
+                    .setDefaultValue(150)
                     .setTooltip(Text.literal("Higher = denser snowfall. Light: 60-80, Heavy: 180-220"))
                     .setSaveConsumer(val -> SnowfallConfig.PARTICLES_PER_TICK = val)
                     .build());

@@ -7,6 +7,7 @@ package cinematic.snowstorm.config;
 public class SnowfallConfig {
     // weather sounds
     public static boolean ENABLE_WEATHER_SOUND = true;
+    public static int MAX_PARTICLE_COUNT = 32000;
 
     // ==== SPAWN SETTINGS ====
 
