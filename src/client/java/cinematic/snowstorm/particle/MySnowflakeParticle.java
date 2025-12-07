@@ -7,7 +7,7 @@ import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.Vec3d;
 
 public class MySnowflakeParticle extends SpriteBillboardParticle {
@@ -137,7 +137,7 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         return 15728880;
     }
 
-    public static class Factory implements net.minecraft.client.particle.ParticleFactory<DefaultParticleType> {
+    public static class Factory implements net.minecraft.client.particle.ParticleFactory<SimpleParticleType> {
         private final SpriteProvider sprites;
 
         public Factory(SpriteProvider spriteProvider) {
@@ -145,7 +145,7 @@ public class MySnowflakeParticle extends SpriteBillboardParticle {
         }
 
         @Override
-        public Particle createParticle(DefaultParticleType type,
+        public Particle createParticle(SimpleParticleType type,
                                        ClientWorld world,
                                        double x, double y, double z,
                                        double vx, double vy, double vz) {
