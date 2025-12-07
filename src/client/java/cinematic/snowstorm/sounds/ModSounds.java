@@ -11,7 +11,7 @@ public class ModSounds {
     public static final SoundEvent BLIZZARD_HEAVY = registerSound("weather.blizzard.heavy");
 
     private static SoundEvent registerSound(String name) {
-        Identifier id = new Identifier("cinematic-snowstorm", name);
+        Identifier id = Identifier.of("cinematic-snowstorm", name);
         return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
     }
 

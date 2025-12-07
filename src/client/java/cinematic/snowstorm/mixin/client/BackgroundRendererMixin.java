@@ -1,34 +1,38 @@
 package cinematic.snowstorm.mixin.client;
 
 import cinematic.snowstorm.fog.WeatherFogHandler;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.Fog;
+import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin to modify fog rendering in BackgroundRenderer
+ * Mixin to modify fog rendering in BackgroundRenderer for Minecraft 1.21.2+
  */
 @Mixin(BackgroundRenderer.class)
 public class BackgroundRendererMixin {
 
     /**
-     * Inject at the start of applyFog method to modify fog parameters
+     * Inject into applyFog to modify fog distances and colors
+     * In 1.21.2+, applyFog returns Fog object and includes color parameter
      */
     @Inject(
             method = "applyFog",
-            at = @At("TAIL")
+            at = @At("RETURN"),
+            cancellable = true
     )
     private static void onApplyFog(
             Camera camera,
             BackgroundRenderer.FogType fogType,
+            Vector4f color,
             float viewDistance,
-            boolean thickFog,
+            boolean thickenFog,
             float tickDelta,
-            CallbackInfo ci
+            CallbackInfoReturnable<Fog> cir
     ) {
         // Update fog handler
         WeatherFogHandler.updateFog();
@@ -38,84 +42,83 @@ public class BackgroundRendererMixin {
             return;
         }
 
-        // Apply fog for both terrain and sky
+        // Get the returned Fog object
+        Fog originalFog = cir.getReturnValue();
+        if (originalFog == null) return;
+
+        // Calculate new fog distances based on fog type
+        float fogStart;
+        float fogEnd;
+
         if (fogType == BackgroundRenderer.FogType.FOG_TERRAIN) {
-            float fogStart = WeatherFogHandler.getFogStart();
-            float fogEnd = WeatherFogHandler.getFogEnd();
-
-            // Apply ground/terrain fog distances
-            RenderSystem.setShaderFogStart(viewDistance * fogStart);
-            RenderSystem.setShaderFogEnd(viewDistance * fogEnd);
+            fogStart = WeatherFogHandler.getFogStart();
+            fogEnd = WeatherFogHandler.getFogEnd();
         } else if (fogType == BackgroundRenderer.FogType.FOG_SKY) {
-            float skyFogStart = WeatherFogHandler.getSkyFogStart();
-            float skyFogEnd = WeatherFogHandler.getSkyFogEnd();
-
-            // Apply sky fog distances
-            RenderSystem.setShaderFogStart(viewDistance * skyFogStart);
-            RenderSystem.setShaderFogEnd(viewDistance * skyFogEnd);
+            fogStart = WeatherFogHandler.getSkyFogStart();
+            fogEnd = WeatherFogHandler.getSkyFogEnd();
+        } else {
+            return;
         }
+
+        // Get fog color modifier
+        float[] fogColor = WeatherFogHandler.getFogColor(fogType == BackgroundRenderer.FogType.FOG_SKY);
+
+        // Apply color modification to existing colors
+        float red = originalFog.red() * fogColor[0];
+        float green = originalFog.green() * fogColor[1];
+        float blue = originalFog.blue() * fogColor[2];
+
+        // Create new Fog with modified distances and colors
+        Fog modifiedFog = new Fog(
+                viewDistance * fogStart,  // start
+                viewDistance * fogEnd,    // end
+                originalFog.shape(),      // shape (SPHERE, CYLINDER, etc.)
+                red,                      // red component
+                green,                    // green component
+                blue,                     // blue component
+                originalFog.alpha()       // alpha component
+        );
+
+        // Set the modified fog as return value
+        cir.setReturnValue(modifiedFog);
     }
 
     /**
-     * Inject to modify fog color for both terrain and sky
+     * Inject into getFogColor to modify fog color
+     * This is called before applyFog and determines the base fog color
      */
     @Inject(
-            method = "render",
-            at = @At("RETURN")
+            method = "getFogColor",
+            at = @At("RETURN"),
+            cancellable = true
     )
-    private static void onRender(
+    private static void onGetFogColor(
             Camera camera,
             float tickDelta,
             net.minecraft.client.world.ClientWorld world,
-            int viewDistance,
+            int clampedViewDistance,
             float skyDarkness,
-            CallbackInfo ci
+            CallbackInfoReturnable<Vector4f> cir
     ) {
         if (!WeatherFogHandler.shouldApplyWeatherFog()) {
             return;
         }
 
-        // Get fog color for terrain (will be applied to both)
-        // Note: Minecraft uses same fog color for terrain and sky by default
+        // Get original color
+        Vector4f originalColor = cir.getReturnValue();
+        if (originalColor == null) return;
+
+        // Get weather fog color modifier (not sky-specific at this stage)
         float[] fogColor = WeatherFogHandler.getFogColor(false);
-        float red = RenderSystem.getShaderFogColor()[0] * fogColor[0];
-        float green = RenderSystem.getShaderFogColor()[1] * fogColor[1];
-        float blue = RenderSystem.getShaderFogColor()[2] * fogColor[2];
-        float alpha = RenderSystem.getShaderFogColor()[3];
 
-        RenderSystem.setShaderFogColor(red, green, blue, alpha);
-    }
+        // Apply color modification
+        Vector4f modifiedColor = new Vector4f(
+                originalColor.x * fogColor[0],
+                originalColor.y * fogColor[1],
+                originalColor.z * fogColor[2],
+                originalColor.w
+        );
 
-    /**
-     * Additional mixin to modify sky color for cozy winter vibes
-     */
-    @Inject(
-            method = "render",
-            at = @At("HEAD")
-    )
-    private static void onRenderSky(
-            Camera camera,
-            float tickDelta,
-            net.minecraft.client.world.ClientWorld world,
-            int viewDistance,
-            float skyDarkness,
-            CallbackInfo ci
-    ) {
-        if (!WeatherFogHandler.shouldApplyWeatherFog()) {
-            return;
-        }
-
-        // Apply sky-specific color tint
-        float[] skyColor = WeatherFogHandler.getFogColor(true);
-        float currentRed = RenderSystem.getShaderFogColor()[0];
-        float currentGreen = RenderSystem.getShaderFogColor()[1];
-        float currentBlue = RenderSystem.getShaderFogColor()[2];
-
-        // Blend with sky color for atmospheric effect
-        float blendedRed = currentRed * skyColor[0];
-        float blendedGreen = currentGreen * skyColor[1];
-        float blendedBlue = currentBlue * skyColor[2];
-
-        RenderSystem.setShaderFogColor(blendedRed, blendedGreen, blendedBlue, 1.0f);
+        cir.setReturnValue(modifiedColor);
     }
 }

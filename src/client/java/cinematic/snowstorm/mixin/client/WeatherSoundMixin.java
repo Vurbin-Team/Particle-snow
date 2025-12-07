@@ -21,8 +21,8 @@ public class WeatherSoundMixin {
 
         // Полностью блокируем оригинальные звуки дождя
         // Наш менеджер сам будет управлять звуками
-        if (soundId.equals(SoundEvents.WEATHER_RAIN.getId()) ||
-                soundId.equals(SoundEvents.WEATHER_RAIN_ABOVE.getId())) {
+        if (soundId.equals(SoundEvents.WEATHER_RAIN.id()) ||
+                soundId.equals(SoundEvents.WEATHER_RAIN_ABOVE.id())) {
             ci.cancel();
         }
     }

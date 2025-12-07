@@ -13,7 +13,7 @@ public class ParticleTypes {
     public static void register() {
         System.out.println("-------- Particles registered! --------");
         Registry.register(Registries.PARTICLE_TYPE,
-                new Identifier("cinematic-snowstorm", "my_snowflake"),
+                Identifier.of("cinematic-snowstorm", "my_snowflake"),
                 MY_SNOWFLAKE);
     }
 }
