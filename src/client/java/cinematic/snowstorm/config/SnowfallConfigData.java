@@ -15,7 +15,6 @@ public class SnowfallConfigData {
 
     // Movement Settings
     public float playerFollowStrength = 0.015f;
-    public float airDrag = 0.98f;
     public float fallSpeedMin = 0.08f;
     public float fallSpeedMax = 0.10f;
 
@@ -29,8 +28,8 @@ public class SnowfallConfigData {
     public float swayAmountMin = 0.018f;
     public float swayAmountMax = 0.043f;
     public float swaySpeed = 0.4f;
-    public float windMin = 0.5f;
-    public float windMax = 1.0f;
+    public float windStrength = 0.02f;
+    public float windAngle = 0.0f;
     public float rotationSpeed = 0.02f;
 
     public boolean enableWeatherSound = true;

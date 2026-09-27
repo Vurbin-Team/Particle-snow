@@ -1,38 +1,19 @@
 package cinematic.snowstorm.mixin.client;
 
 import cinematic.snowstorm.config.SnowfallConfig;
-import com.google.common.collect.EvictingQueue;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleRenderer;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.client.particle.ParticleGroup;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Queue;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 /**
- * Mixin to increase particle limit by modifying ParticleRenderer's queue capacity
- * for Minecraft 1.21.6
+ * Increases the particle queue capacity for Minecraft 26.1.
  */
-@Mixin(ParticleRenderer.class)
+@Mixin(ParticleGroup.class)
 public class IncreaseParticleLimitMixin {
 
-    @Shadow
-    @Final
-    @Mutable
-    private Queue<Particle> particles;
-
-    /**
-     * Inject into constructor to replace the default EvictingQueue
-     * with one that has a larger capacity
-     */
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void onInit(CallbackInfo ci) {
-        // Заменяем очередь на новую с увеличенным лимитом
-        this.particles = EvictingQueue.create(SnowfallConfig.MAX_PARTICLE_COUNT);
+    @ModifyConstant(method = "<init>", constant = @Constant(intValue = 16384))
+    private int increaseParticleQueueCapacity(int defaultCapacity) {
+        return Math.max(defaultCapacity, SnowfallConfig.MAX_PARTICLE_COUNT);
     }
 }

@@ -1,8 +1,8 @@
 package cinematic.snowstorm.fog;
 
 import cinematic.snowstorm.config.FogConfig;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.Level;
 
 /**
  * Handler class for weather-based fog effects
@@ -26,8 +26,8 @@ public class WeatherFogHandler {
      * Call this every frame
      */
     public static void updateFog() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        World world = client.world;
+        Minecraft client = Minecraft.getInstance();
+        Level world = client.level;
 
         if (world == null) {
             targetFogStart = 1.0f;
@@ -106,8 +106,8 @@ public class WeatherFogHandler {
      * Check if weather fog should be applied
      */
     public static boolean shouldApplyWeatherFog() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        World world = client.world;
+        Minecraft client = Minecraft.getInstance();
+        Level world = client.level;
 
         if (world == null) return false;
 
@@ -123,8 +123,8 @@ public class WeatherFogHandler {
      * @param isSky true for sky fog, false for terrain fog
      */
     public static float[] getFogColor(boolean isSky) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        World world = client.world;
+        Minecraft client = Minecraft.getInstance();
+        Level world = client.level;
 
         if (world == null) return new float[]{1.0f, 1.0f, 1.0f};
 

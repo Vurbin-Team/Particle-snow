@@ -8,7 +8,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 /**
  * Mod Menu integration for Snowstorm configuration
@@ -22,236 +22,228 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
             // Apply and save - this ensures all changes are captured
             ConfigBuilder builder = ConfigBuilder.create()
                     .setParentScreen(parent)
-                    .setTitle(Text.literal("Snowstorm Configuration"))
+                    .setTitle(Component.literal("Snowstorm Configuration"))
                     .setSavingRunnable(SnowfallConfigManager::applyAndSave);
 
             ConfigEntryBuilder entryBuilder = builder.entryBuilder();
             SnowfallConfigData config = SnowfallConfigManager.getConfig();
 
             // ==== PRESETS CATEGORY ====
-            ConfigCategory presets = builder.getOrCreateCategory(Text.literal("Presets"));
+            ConfigCategory presets = builder.getOrCreateCategory(Component.literal("Presets"));
 
             presets.addEntry(entryBuilder.startTextDescription(
-                    Text.literal("Select a preset to quickly configure snowfall style")
+                    Component.literal("Select a preset to quickly configure snowfall style")
             ).build());
 
             // Preset selector using enum
             presets.addEntry(entryBuilder.startEnumSelector(
-                            Text.literal("Snow Preset"),
+                            Component.literal("Snow Preset"),
                             SnowfallConfigManager.Preset.class,
                             SnowfallConfigManager.Preset.CINEMATIC
                     )
                     .setDefaultValue(SnowfallConfigManager.Preset.CINEMATIC)
                     .setTooltip(
-                            Text.literal("LIGHT_SNOW: Gentle snowfall"),
-                            Text.literal("BLIZZARD: Heavy snowstorm"),
-                            Text.literal("MAGICAL: Slow-motion effect"),
-                            Text.literal("CINEMATIC: Wide-area snow")
+                            Component.literal("LIGHT_SNOW: Gentle snowfall"),
+                            Component.literal("BLIZZARD: Heavy snowstorm"),
+                            Component.literal("MAGICAL: Slow-motion effect"),
+                            Component.literal("CINEMATIC: Wide-area snow")
                     )
                     .setSaveConsumer(SnowfallConfigManager::applyPreset)
                     .build());
 
             presets.addEntry(entryBuilder.startBooleanToggle(
-                            Text.literal("Weather Sound"),
+                            Component.literal("Weather Sound"),
                             config.enableWeatherSound)
                     .setDefaultValue(true)
-                    .setTooltip(Text.literal("Sound of snowy weather"))
+                    .setTooltip(Component.literal("Sound of snowy weather"))
                     .setSaveConsumer(val -> SnowfallConfig.ENABLE_WEATHER_SOUND = val)
                     .build());
 
-            presets.addEntry(entryBuilder.startIntField(Text.literal("Particle max count"), config.maxParticleCount)
+            presets.addEntry(entryBuilder.startIntField(Component.literal("Particle max count"), config.maxParticleCount)
                     .setDefaultValue(32000)
-                    .setTooltip(Text.literal("Sound of snowy weather"))
+                    .setTooltip(Component.literal("Maximum active snow particles"))
                     .setSaveConsumer(val -> SnowfallConfig.MAX_PARTICLE_COUNT = val)
                     .build());
 
             presets.addEntry(entryBuilder.startTextDescription(
-                    Text.literal("§7After selecting a preset, click 'Done' to apply and save")
+                    Component.literal("§7After selecting a preset, click 'Done' to apply and save")
             ).build());
 
             // ==== TEXTURES ====
-            ConfigCategory textures = builder.getOrCreateCategory(Text.literal("Textures"));
+            ConfigCategory textures = builder.getOrCreateCategory(Component.literal("Textures"));
 
             textures.addEntry(entryBuilder.startBooleanToggle(
-                            Text.literal("Realistic Snow"),
+                            Component.literal("Realistic Snow"),
                             config.realisticSnow)
                     .setDefaultValue(false)
                     .setTooltip(
-                            Text.literal("Off: stylized pixel-art snowflakes (default)"),
-                            Text.literal("On: soft, photo-realistic snow particles")
+                            Component.literal("Off: stylized pixel-art snowflakes (default)"),
+                            Component.literal("On: soft, photo-realistic snow particles")
                     )
                     .setSaveConsumer(val -> SnowfallConfig.REALISTIC_SNOW = val)
                     .build());
 
             // ==== SPAWN SETTINGS ====
-            ConfigCategory spawn = builder.getOrCreateCategory(Text.literal("Spawn Settings"));
+            ConfigCategory spawn = builder.getOrCreateCategory(Component.literal("Spawn Settings"));
 
             spawn.addEntry(entryBuilder.startIntSlider(
-                            Text.literal("Spawn Height"),
+                            Component.literal("Spawn Height"),
                             config.spawnHeight, 20, 80)
                     .setDefaultValue(40)
-                    .setTooltip(Text.literal("How high above player particles spawn"))
+                    .setTooltip(Component.literal("How high above player particles spawn"))
                     .setSaveConsumer(val -> SnowfallConfig.SPAWN_HEIGHT = val)
                     .build());
 
             spawn.addEntry(entryBuilder.startIntSlider(
-                            Text.literal("Spawn Radius"),
+                            Component.literal("Spawn Radius"),
                             config.spawnRadius, 40, 150)
                     .setDefaultValue(80)
-                    .setTooltip(Text.literal("Horizontal radius for close particles"))
+                    .setTooltip(Component.literal("Horizontal radius for close particles"))
                     .setSaveConsumer(val -> SnowfallConfig.SPAWN_RADIUS = val)
                     .build());
 
             spawn.addEntry(entryBuilder.startIntSlider(
-                            Text.literal("Far Spawn Radius"),
+                            Component.literal("Far Spawn Radius"),
                             config.farSpawnRadius, 80, 200)
                     .setDefaultValue(120)
-                    .setTooltip(Text.literal("Distance for far particles (depth effect)"))
+                    .setTooltip(Component.literal("Distance for far particles (depth effect)"))
                     .setSaveConsumer(val -> SnowfallConfig.FAR_SPAWN_RADIUS = val)
                     .build());
 
             spawn.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Far Spawn Chance"),
+                            Component.literal("Far Spawn Chance"),
                             config.farSpawnChance)
                     .setDefaultValue(0.3f)
-                    .setTooltip(Text.literal("Chance for particles to spawn far (0.0 - 1.0)"))
+                    .setTooltip(Component.literal("Chance for particles to spawn far (0.0 - 1.0)"))
                     .setSaveConsumer(val -> SnowfallConfig.FAR_SPAWN_CHANCE = val)
                     .build());
 
             spawn.addEntry(entryBuilder.startIntSlider(
-                            Text.literal("Particles Per Tick"),
+                            Component.literal("Particles Per Tick"),
                             config.particlesPerTick, 20, 500)
                     .setDefaultValue(150)
-                    .setTooltip(Text.literal("Higher = denser snowfall. Light: 60-80, Heavy: 180-220"))
+                    .setTooltip(Component.literal("Higher = denser snowfall. Light: 60-80, Heavy: 180-220"))
                     .setSaveConsumer(val -> SnowfallConfig.PARTICLES_PER_TICK = val)
                     .build());
 
             spawn.addEntry(entryBuilder.startIntSlider(
-                            Text.literal("Spawn Interval"),
+                            Component.literal("Spawn Interval"),
                             config.spawnInterval, 1, 10)
                     .setDefaultValue(3)
-                    .setTooltip(Text.literal("Ticks between spawn cycles (lower = more frequent)"))
+                    .setTooltip(Component.literal("Ticks between spawn cycles (lower = more frequent)"))
                     .setSaveConsumer(val -> SnowfallConfig.SPAWN_INTERVAL = val)
                     .build());
 
             // ==== MOVEMENT SETTINGS ====
-            ConfigCategory movement = builder.getOrCreateCategory(Text.literal("Movement"));
+            ConfigCategory movement = builder.getOrCreateCategory(Component.literal("Movement"));
 
             movement.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Player Follow Strength"),
+                            Component.literal("Player Follow Strength"),
                             config.playerFollowStrength)
                     .setDefaultValue(0.015f)
-                    .setTooltip(Text.literal("How much particles follow player (0.0 - 1.0)"))
+                    .setTooltip(Component.literal("How much particles follow player (0.0 - 1.0)"))
                     .setSaveConsumer(val -> SnowfallConfig.PLAYER_FOLLOW_STRENGTH = val)
                     .build());
 
             movement.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Air Drag"),
-                            config.airDrag)
-                    .setDefaultValue(0.98f)
-                    .setTooltip(Text.literal("Air resistance (0.95 = high, 0.99 = low)"))
-                    .setSaveConsumer(val -> SnowfallConfig.AIR_DRAG = val)
-                    .build());
-
-            movement.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Fall Speed Min"),
+                            Component.literal("Fall Speed Min"),
                             config.fallSpeedMin)
                     .setDefaultValue(0.08f)
-                    .setTooltip(Text.literal("Minimum fall speed"))
+                    .setTooltip(Component.literal("Minimum fall speed"))
                     .setSaveConsumer(val -> SnowfallConfig.FALL_SPEED_MIN = val)
                     .build());
 
             movement.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Fall Speed Max"),
+                            Component.literal("Fall Speed Max"),
                             config.fallSpeedMax)
                     .setDefaultValue(0.10f)
-                    .setTooltip(Text.literal("Maximum fall speed"))
+                    .setTooltip(Component.literal("Maximum fall speed"))
                     .setSaveConsumer(val -> SnowfallConfig.FALL_SPEED_MAX = val)
                     .build());
 
             // ==== VISUAL SETTINGS ====
-            ConfigCategory visual = builder.getOrCreateCategory(Text.literal("Visual"));
+            ConfigCategory visual = builder.getOrCreateCategory(Component.literal("Visual"));
 
             visual.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Size Min"),
+                            Component.literal("Size Min"),
                             config.sizeMin)
                     .setDefaultValue(0.18f)
-                    .setTooltip(Text.literal("Minimum particle size"))
+                    .setTooltip(Component.literal("Minimum particle size"))
                     .setSaveConsumer(val -> SnowfallConfig.SIZE_MIN = val)
                     .build());
 
             visual.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Size Max"),
+                            Component.literal("Size Max"),
                             config.sizeMax)
                     .setDefaultValue(0.25f)
-                    .setTooltip(Text.literal("Maximum particle size"))
+                    .setTooltip(Component.literal("Maximum particle size"))
                     .setSaveConsumer(val -> SnowfallConfig.SIZE_MAX = val)
                     .build());
 
             visual.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Alpha Min"),
+                            Component.literal("Alpha Min"),
                             config.alphaMin)
                     .setDefaultValue(0.30f)
-                    .setTooltip(Text.literal("Minimum transparency"))
+                    .setTooltip(Component.literal("Minimum transparency"))
                     .setSaveConsumer(val -> SnowfallConfig.ALPHA_MIN = val)
                     .build());
 
             visual.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Alpha Max"),
+                            Component.literal("Alpha Max"),
                             config.alphaMax)
                     .setDefaultValue(0.45f)
-                    .setTooltip(Text.literal("Maximum transparency"))
+                    .setTooltip(Component.literal("Maximum transparency"))
                     .setSaveConsumer(val -> SnowfallConfig.ALPHA_MAX = val)
                     .build());
 
             // ==== WIND & SWAY ====
-            ConfigCategory windSway = builder.getOrCreateCategory(Text.literal("Wind & Sway"));
+            ConfigCategory windSway = builder.getOrCreateCategory(Component.literal("Wind & Sway"));
 
             windSway.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Sway Amount Min"),
+                            Component.literal("Sway Amount Min"),
                             config.swayAmountMin)
                     .setDefaultValue(0.018f)
-                    .setTooltip(Text.literal("Minimum swaying amplitude"))
+                    .setTooltip(Component.literal("Minimum swaying amplitude"))
                     .setSaveConsumer(val -> SnowfallConfig.SWAY_AMOUNT_MIN = val)
                     .build());
 
             windSway.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Sway Amount Max"),
+                            Component.literal("Sway Amount Max"),
                             config.swayAmountMax)
                     .setDefaultValue(0.043f)
-                    .setTooltip(Text.literal("Maximum swaying amplitude"))
+                    .setTooltip(Component.literal("Maximum swaying amplitude"))
                     .setSaveConsumer(val -> SnowfallConfig.SWAY_AMOUNT_MAX = val)
                     .build());
 
             windSway.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Sway Speed"),
+                            Component.literal("Sway Speed"),
                             config.swaySpeed)
                     .setDefaultValue(0.4f)
-                    .setTooltip(Text.literal("Speed of swaying motion"))
+                    .setTooltip(Component.literal("Speed of swaying motion"))
                     .setSaveConsumer(val -> SnowfallConfig.SWAY_SPEED = val)
                     .build());
 
             windSway.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Wind Min"),
-                            config.windMin)
-                    .setDefaultValue(0.5f)
-                    .setTooltip(Text.literal("Minimum wind strength"))
-                    .setSaveConsumer(val -> SnowfallConfig.WIND_MIN = val)
+                            Component.literal("Wind Strength"),
+                            config.windStrength)
+                    .setDefaultValue(0.02f)
+                    .setTooltip(Component.literal("Immediate horizontal particle speed in blocks per tick"))
+                    .setSaveConsumer(val -> SnowfallConfig.WIND_STRENGTH = Math.max(0.0f, val))
                     .build());
 
             windSway.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Wind Max"),
-                            config.windMax)
-                    .setDefaultValue(1.0f)
-                    .setTooltip(Text.literal("Maximum wind strength"))
-                    .setSaveConsumer(val -> SnowfallConfig.WIND_MAX = val)
+                            Component.literal("Wind Angle"),
+                            config.windAngle)
+                    .setDefaultValue(0.0f)
+                    .setTooltip(Component.literal("Direction in degrees: 0 = +X, 90 = +Z"))
+                    .setSaveConsumer(val -> SnowfallConfig.WIND_ANGLE = (val % 360.0f + 360.0f) % 360.0f)
                     .build());
 
             windSway.addEntry(entryBuilder.startFloatField(
-                            Text.literal("Rotation Speed"),
+                            Component.literal("Rotation Speed"),
                             config.rotationSpeed)
                     .setDefaultValue(0.02f)
-                    .setTooltip(Text.literal("Speed of particle rotation"))
+                    .setTooltip(Component.literal("Speed of particle rotation"))
                     .setSaveConsumer(val -> SnowfallConfig.ROTATION_SPEED = val)
                     .build());
 

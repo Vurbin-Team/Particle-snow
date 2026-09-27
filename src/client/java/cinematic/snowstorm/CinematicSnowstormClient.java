@@ -7,7 +7,7 @@ import cinematic.snowstorm.sounds.AdvancedWeatherSoundManager;
 import cinematic.snowstorm.sounds.ModSounds;
 import cinematic.snowstorm.utils.SnowSpawnManager;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 
 public class CinematicSnowstormClient implements ClientModInitializer {
 
@@ -24,8 +24,8 @@ public class CinematicSnowstormClient implements ClientModInitializer {
 
 		// Both snow particle types share the same behaviour/physics -
 		// only their sprite textures (defined in the particle JSON files) differ.
-		ParticleFactoryRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE, MySnowflakeParticle.Factory::new);
-		ParticleFactoryRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE_REALISTIC, MySnowflakeParticle.Factory::new);
+		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE, MySnowflakeParticle.Factory::new);
+		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE_REALISTIC, MySnowflakeParticle.Factory::new);
 
 		// Запуск менеджера спавна снега / тумана
 		SnowSpawnManager.init();

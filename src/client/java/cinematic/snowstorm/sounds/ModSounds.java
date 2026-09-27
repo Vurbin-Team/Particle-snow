@@ -1,9 +1,9 @@
 package cinematic.snowstorm.sounds;
 
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.resources.Identifier;
 
 public class ModSounds {
 
@@ -11,8 +11,8 @@ public class ModSounds {
     public static final SoundEvent BLIZZARD_HEAVY = registerSound("weather.blizzard.heavy");
 
     private static SoundEvent registerSound(String name) {
-        Identifier id = Identifier.of("cinematic-snowstorm", name);
-        return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
+        Identifier id = Identifier.fromNamespaceAndPath("cinematic-snowstorm", name);
+        return Registry.register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
     }
 
     public static void initialize() {

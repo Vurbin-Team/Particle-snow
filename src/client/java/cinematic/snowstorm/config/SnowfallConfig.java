@@ -27,8 +27,6 @@ public class SnowfallConfig {
     public static float FAR_SPAWN_CHANCE = 0.3f;  // 30% spawn far away
     public static int PARTICLES_PER_TICK = 200;
 
-    public static int GLOBAL_WIND_ANGLE_X = 10;
-
     // Ticks between spawn cycles (lower = more frequent)
     public static int SPAWN_INTERVAL = 3;
 
@@ -38,9 +36,6 @@ public class SnowfallConfig {
     // How much particles follow player movement (0.0 - 1.0)
     // Higher = better follows fast movement
     public static float PLAYER_FOLLOW_STRENGTH = 0.015f;
-
-    // Air resistance (0.95 = high resistance, 0.99 = low resistance)
-    public static float AIR_DRAG = 0.98f;
 
     // How fast particles fall
     public static float FALL_SPEED_MIN = 0.08f;
@@ -67,9 +62,10 @@ public class SnowfallConfig {
     // Swaying speed (higher = faster movement)
     public static float SWAY_SPEED = 0.4f;
 
-    // Wind/drift strength (higher = more wind effect)
-    public static float WIND_MIN = 0.5f;
-    public static float WIND_MAX = 1.0f;
+    // Horizontal wind velocity in blocks per tick; applied immediately when particles spawn.
+    public static float WIND_STRENGTH = 0.02f;
+    // Direction of particle movement in degrees: 0 = +X, 90 = +Z.
+    public static float WIND_ANGLE = 0.0f;
 
     // Rotation speed (visual spinning)
     public static float ROTATION_SPEED = 0.02f;
@@ -90,8 +86,7 @@ public class SnowfallConfig {
         FALL_SPEED_MAX = 0.08f;
         SWAY_AMOUNT_MIN = 0.015f;
         SWAY_AMOUNT_MAX = 0.030f;
-        WIND_MIN = 0.3f;
-        WIND_MAX = 0.6f;
+        WIND_STRENGTH = 0.01f;
     }
 
     /**
@@ -107,9 +102,7 @@ public class SnowfallConfig {
         FALL_SPEED_MAX = 0.16f;
         SWAY_AMOUNT_MIN = 0.030f;
         SWAY_AMOUNT_MAX = 0.060f;
-        WIND_MIN = 1.2f;
-        WIND_MAX = 1.8f;
-        AIR_DRAG = 0.96f;
+        WIND_STRENGTH = 0.06f;
     }
 
     /**
@@ -130,6 +123,7 @@ public class SnowfallConfig {
         ALPHA_MIN = 0.80f;
         ALPHA_MAX = 0.95f;
         ROTATION_SPEED = 0.03f;
+        WIND_STRENGTH = 0.005f;
     }
 
     /**
@@ -147,7 +141,6 @@ public class SnowfallConfig {
         SWAY_AMOUNT_MAX = 0.040f;
         SIZE_MIN = 0.28f;
         SIZE_MAX = 0.45f;
-        WIND_MIN = 0.6f;
-        WIND_MAX = 1.2f;
+        WIND_STRENGTH = 0.02f;
     }
 }

@@ -2,10 +2,10 @@ package cinematic.snowstorm.particle;
 
 import cinematic.snowstorm.config.SnowfallConfig;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
-import net.minecraft.particle.SimpleParticleType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.Registry;
 
 public class ParticleTypes {
     // Stylized pixel-art snowflake (default look)
@@ -15,11 +15,11 @@ public class ParticleTypes {
     public static final SimpleParticleType MY_SNOWFLAKE_REALISTIC = FabricParticleTypes.simple(true);
 
     public static void register() {
-        Registry.register(Registries.PARTICLE_TYPE,
-                Identifier.of("cinematic-snowstorm", "my_snowflake"),
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE,
+                Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowflake"),
                 MY_SNOWFLAKE);
-        Registry.register(Registries.PARTICLE_TYPE,
-                Identifier.of("cinematic-snowstorm", "my_snowflake_realistic"),
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE,
+                Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowflake_realistic"),
                 MY_SNOWFLAKE_REALISTIC);
     }
 

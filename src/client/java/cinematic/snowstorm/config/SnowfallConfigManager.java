@@ -70,7 +70,6 @@ public class SnowfallConfigManager {
         SnowfallConfig.PARTICLES_PER_TICK = configData.particlesPerTick;
         SnowfallConfig.SPAWN_INTERVAL = configData.spawnInterval;
         SnowfallConfig.PLAYER_FOLLOW_STRENGTH = configData.playerFollowStrength;
-        SnowfallConfig.AIR_DRAG = configData.airDrag;
         SnowfallConfig.FALL_SPEED_MIN = configData.fallSpeedMin;
         SnowfallConfig.FALL_SPEED_MAX = configData.fallSpeedMax;
         SnowfallConfig.SIZE_MIN = configData.sizeMin;
@@ -80,8 +79,8 @@ public class SnowfallConfigManager {
         SnowfallConfig.SWAY_AMOUNT_MIN = configData.swayAmountMin;
         SnowfallConfig.SWAY_AMOUNT_MAX = configData.swayAmountMax;
         SnowfallConfig.SWAY_SPEED = configData.swaySpeed;
-        SnowfallConfig.WIND_MIN = configData.windMin;
-        SnowfallConfig.WIND_MAX = configData.windMax;
+        SnowfallConfig.WIND_STRENGTH = Math.max(0.0f, configData.windStrength);
+        SnowfallConfig.WIND_ANGLE = normalizeAngle(configData.windAngle);
         SnowfallConfig.ROTATION_SPEED = configData.rotationSpeed;
         SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
         SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
@@ -99,7 +98,6 @@ public class SnowfallConfigManager {
         configData.particlesPerTick = SnowfallConfig.PARTICLES_PER_TICK;
         configData.spawnInterval = SnowfallConfig.SPAWN_INTERVAL;
         configData.playerFollowStrength = SnowfallConfig.PLAYER_FOLLOW_STRENGTH;
-        configData.airDrag = SnowfallConfig.AIR_DRAG;
         configData.fallSpeedMin = SnowfallConfig.FALL_SPEED_MIN;
         configData.fallSpeedMax = SnowfallConfig.FALL_SPEED_MAX;
         configData.sizeMin = SnowfallConfig.SIZE_MIN;
@@ -109,8 +107,8 @@ public class SnowfallConfigManager {
         configData.swayAmountMin = SnowfallConfig.SWAY_AMOUNT_MIN;
         configData.swayAmountMax = SnowfallConfig.SWAY_AMOUNT_MAX;
         configData.swaySpeed = SnowfallConfig.SWAY_SPEED;
-        configData.windMin = SnowfallConfig.WIND_MIN;
-        configData.windMax = SnowfallConfig.WIND_MAX;
+        configData.windStrength = Math.max(0.0f, SnowfallConfig.WIND_STRENGTH);
+        configData.windAngle = normalizeAngle(SnowfallConfig.WIND_ANGLE);
         configData.rotationSpeed = SnowfallConfig.ROTATION_SPEED;
         configData.enableWeatherSound = SnowfallConfig.ENABLE_WEATHER_SOUND;
         configData.maxParticleCount = SnowfallConfig.MAX_PARTICLE_COUNT;
@@ -124,6 +122,10 @@ public class SnowfallConfigManager {
         captureFromRuntime();
         save();
         SnowSpawnManager.reload();
+    }
+
+    private static float normalizeAngle(float angle) {
+        return (angle % 360.0f + 360.0f) % 360.0f;
     }
 
     /**

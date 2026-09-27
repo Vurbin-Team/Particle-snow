@@ -2,11 +2,11 @@ package cinematic.snowstorm.sounds;
 
 import cinematic.snowstorm.config.SnowfallConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.sound.MovingSoundInstance;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.RandomSource;
 
 public class AdvancedWeatherSoundManager {
 
@@ -16,13 +16,13 @@ public class AdvancedWeatherSoundManager {
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (!SnowfallConfig.ENABLE_WEATHER_SOUND || client.world == null || client.player == null) {
+            if (!SnowfallConfig.ENABLE_WEATHER_SOUND || client.level == null || client.player == null) {
                 stopSound(client);
                 return;
             }
 
-            boolean isRaining = client.world.isRaining();
-            boolean isThundering = client.world.isThundering();
+            boolean isRaining = client.level.isRaining();
+            boolean isThundering = client.level.isThundering();
 
             // Если погода началась или изменился тип (дождь/гроза)
             if (isRaining && (!wasRaining || isThundering != wasThundering)) {
@@ -39,7 +39,7 @@ public class AdvancedWeatherSoundManager {
         });
     }
 
-    private static void startSound(MinecraftClient client, boolean isThundering) {
+    private static void startSound(Minecraft client, boolean isThundering) {
         if (currentSound != null) return;
 
         SoundEvent sound = isThundering ? ModSounds.BLIZZARD_HEAVY : ModSounds.BLIZZARD_LIGHT;
@@ -48,7 +48,7 @@ public class AdvancedWeatherSoundManager {
         client.getSoundManager().play(currentSound);
     }
 
-    private static void stopSound(MinecraftClient client) {
+    private static void stopSound(Minecraft client) {
         if (currentSound != null && client.getSoundManager() != null) {
             currentSound.stopSound();
             client.getSoundManager().stop(currentSound);
@@ -57,36 +57,36 @@ public class AdvancedWeatherSoundManager {
     }
 
     // Кастомный звук с динамической громкостью (наследует MovingSoundInstance)
-    private static class WeatherSound extends MovingSoundInstance {
-        private final MinecraftClient client;
+    private static class WeatherSound extends AbstractTickableSoundInstance {
+        private final Minecraft client;
         private boolean shouldStop = false;
         private float targetVolume = 1.0f;
         private static final float SMOOTHING_FACTOR = 0.1f; // Скорость сглаживания (0.1 = плавно, 1.0 = мгновенно)
 
-        public WeatherSound(SoundEvent sound, MinecraftClient client) {
-            super(sound, SoundCategory.WEATHER, Random.create());
+        public WeatherSound(SoundEvent sound, Minecraft client) {
+            super(sound, SoundSource.WEATHER, RandomSource.create());
             this.client = client;
-            this.repeat = true;
-            this.repeatDelay = 0;
+            this.looping = true;
+            this.delay = 0;
             this.volume = 1.0f;
             this.pitch = 1.0f;
             this.x = 0;
             this.y = 0;
             this.z = 0;
             this.relative = true;
-            this.attenuationType = AttenuationType.NONE;
+            this.attenuation = Attenuation.NONE;
         }
 
         @Override
         public void tick() {
-            if (shouldStop || client.player == null || client.world == null) {
-                this.setDone();
+            if (shouldStop || client.player == null || client.level == null) {
+                this.stop();
                 return;
             }
 
             // Определяем целевую громкость
-            boolean canSeeSky = client.world.isSkyVisible(client.player.getBlockPos());
-            boolean disableSound = client.player.getBlockPos().getY() < 60 && !client.world.isSkyVisible(client.player.getBlockPos());
+            boolean canSeeSky = client.level.canSeeSky(client.player.blockPosition());
+            boolean disableSound = client.player.blockPosition().getY() < 60 && !canSeeSky;
 
             if(disableSound){
                 targetVolume = 0f;
@@ -102,6 +102,7 @@ public class AdvancedWeatherSoundManager {
 
         public void stopSound() {
             this.shouldStop = true;
+            this.stop();
         }
     }
 }
