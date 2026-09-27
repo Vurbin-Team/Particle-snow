@@ -7,13 +7,33 @@ import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 /**
- * Increases the particle queue capacity for Minecraft 26.1.
+ * Applies the configured per-render-layer particle limit in Minecraft 26.3.
  */
 @Mixin(ParticleGroup.class)
 public class IncreaseParticleLimitMixin {
 
     @ModifyConstant(method = "<init>", constant = @Constant(intValue = 16384))
     private int increaseParticleQueueCapacity(int defaultCapacity) {
-        return Math.max(defaultCapacity, SnowfallConfig.MAX_PARTICLE_COUNT);
+        return particleLimit();
+    }
+
+    @ModifyConstant(
+            method = "add(Lnet/minecraft/client/particle/Particle;)Z",
+            constant = @Constant(intValue = 16384)
+    )
+    private int increaseMaximumParticleCount(int defaultLimit) {
+        return particleLimit();
+    }
+
+    @ModifyConstant(
+            method = "add(Lnet/minecraft/client/particle/Particle;)Z",
+            constant = @Constant(intValue = 12288)
+    )
+    private int disableParticleReservoir(int defaultReservoirStart) {
+        return particleLimit();
+    }
+
+    private static int particleLimit() {
+        return Math.max(1, SnowfallConfig.MAX_PARTICLE_COUNT);
     }
 }

@@ -3,7 +3,6 @@
   "package": "cinematic.snowstorm.mixin.client",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "DisableRainParticlesMixin",
     "DisableRainDripParticlesMixin",
     "DisableLightningMixin",
     "FogRendererMixin",
