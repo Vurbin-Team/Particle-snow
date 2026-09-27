@@ -3,14 +3,11 @@ package cinematic.snowstorm.mixin.client;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WeatherRendering;
 import net.minecraft.client.render.state.WeatherRenderState;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
 
 /**
  * Mixin to disable vanilla rain/snow particles (precipitation)

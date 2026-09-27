@@ -34,4 +34,7 @@ public class SnowfallConfigData {
     public float rotationSpeed = 0.02f;
 
     public boolean enableWeatherSound = true;
+
+    // Texture Settings
+    public boolean realisticSnow = false;
 }

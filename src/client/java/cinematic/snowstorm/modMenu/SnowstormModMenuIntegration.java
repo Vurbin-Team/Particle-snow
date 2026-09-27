@@ -69,6 +69,20 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
                     Text.literal("§7After selecting a preset, click 'Done' to apply and save")
             ).build());
 
+            // ==== TEXTURES ====
+            ConfigCategory textures = builder.getOrCreateCategory(Text.literal("Textures"));
+
+            textures.addEntry(entryBuilder.startBooleanToggle(
+                            Text.literal("Realistic Snow"),
+                            config.realisticSnow)
+                    .setDefaultValue(false)
+                    .setTooltip(
+                            Text.literal("Off: stylized pixel-art snowflakes (default)"),
+                            Text.literal("On: soft, photo-realistic snow particles")
+                    )
+                    .setSaveConsumer(val -> SnowfallConfig.REALISTIC_SNOW = val)
+                    .build());
+
             // ==== SPAWN SETTINGS ====
             ConfigCategory spawn = builder.getOrCreateCategory(Text.literal("Spawn Settings"));
 

@@ -80,7 +80,7 @@ public class SnowSpawnManager {
 
                     // Use alwaysSpawn flag to force rendering at distance
                     world.addImportantParticleClient(
-                            ParticleTypes.MY_SNOWFLAKE,
+                            ParticleTypes.getActiveSnowType(),
                             true,  // alwaysSpawn - bypasses distance check!
                             dx, dy, dz,
                             vx, 0, vz

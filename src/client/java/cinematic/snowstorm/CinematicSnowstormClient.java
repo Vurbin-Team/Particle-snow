@@ -22,8 +22,10 @@ public class CinematicSnowstormClient implements ClientModInitializer {
 		// Регистрируем типы частиц
 		ParticleTypes.register();
 
-		// Перерегистрируем фабрику ванильных снежинок
+		// Both snow particle types share the same behaviour/physics -
+		// only their sprite textures (defined in the particle JSON files) differ.
 		ParticleFactoryRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE, MySnowflakeParticle.Factory::new);
+		ParticleFactoryRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE_REALISTIC, MySnowflakeParticle.Factory::new);
 
 		// Запуск менеджера спавна снега / тумана
 		SnowSpawnManager.init();

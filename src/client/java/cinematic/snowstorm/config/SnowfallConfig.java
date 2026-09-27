@@ -9,6 +9,11 @@ public class SnowfallConfig {
     public static boolean ENABLE_WEATHER_SOUND = true;
     public static int MAX_PARTICLE_COUNT = 32000;
 
+    // ==== TEXTURE SETTINGS ====
+
+    // Use soft, photo-realistic snow textures instead of the stylized pixel-art ones
+    public static boolean REALISTIC_SNOW = false;
+
     // ==== SPAWN SETTINGS ====
 
     // How high above player to spawn particles

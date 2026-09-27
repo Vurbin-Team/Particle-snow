@@ -2,10 +2,8 @@ package cinematic.snowstorm.mixin.client;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.client.render.Camera;
 import net.minecraft.particle.ParticleEffect;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;

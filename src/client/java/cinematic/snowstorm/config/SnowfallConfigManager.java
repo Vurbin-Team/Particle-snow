@@ -85,6 +85,7 @@ public class SnowfallConfigManager {
         SnowfallConfig.ROTATION_SPEED = configData.rotationSpeed;
         SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
         SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
+        SnowfallConfig.REALISTIC_SNOW = configData.realisticSnow;
     }
 
     /**
@@ -113,6 +114,7 @@ public class SnowfallConfigManager {
         configData.rotationSpeed = SnowfallConfig.ROTATION_SPEED;
         configData.enableWeatherSound = SnowfallConfig.ENABLE_WEATHER_SOUND;
         configData.maxParticleCount = SnowfallConfig.MAX_PARTICLE_COUNT;
+        configData.realisticSnow = SnowfallConfig.REALISTIC_SNOW;
     }
 
     /**
