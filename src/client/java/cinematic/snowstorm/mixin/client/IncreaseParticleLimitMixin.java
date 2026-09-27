@@ -6,9 +6,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
-/**
- * Applies the configured per-render-layer particle limit in Minecraft 26.3.
- */
 @Mixin(ParticleGroup.class)
 public class IncreaseParticleLimitMixin {
 
