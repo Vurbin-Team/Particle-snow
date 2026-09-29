@@ -10,6 +10,7 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
@@ -125,12 +126,14 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         double expectedX = this.x + moveX;
         double expectedY = this.y + moveY;
         double expectedZ = this.z + moveZ;
+        boolean targetChunkLoaded = this.level.hasChunkAt(BlockPos.containing(expectedX, expectedY, expectedZ));
+        this.hasPhysics = targetChunkLoaded;
         this.move(moveX, moveY, moveZ);
 
-        if (this.onGround
+        if (targetChunkLoaded && (this.onGround
                 || Math.abs(this.x - expectedX) > COLLISION_EPSILON
                 || Math.abs(this.y - expectedY) > COLLISION_EPSILON
-                || Math.abs(this.z - expectedZ) > COLLISION_EPSILON) {
+                || Math.abs(this.z - expectedZ) > COLLISION_EPSILON)) {
             this.remove();
             return;
         }
