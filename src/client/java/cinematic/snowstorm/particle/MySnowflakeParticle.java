@@ -107,10 +107,6 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         // Get player velocity for following behavior
         Vec3 playerVel = SnowSpawnManager.getPlayerVelocity();
 
-        // Subtle following of player movement (prevents outrunning) - using config
-        this.xd += playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH;
-        this.zd += playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH;
-
         // Natural snowflake movement - swaying and drifting - using config
         float t = this.age * SnowfallConfig.SWAY_SPEED;
 
@@ -123,9 +119,9 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         float swayOffsetZ = cosZ * amplitudeZ * 0.01f;
 
         // Remove the particle if collision resolution blocks movement on any axis.
-        double moveX = this.xd + swayOffsetX;
+        double moveX = this.xd + playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetX;
         double moveY = this.yd;
-        double moveZ = this.zd + swayOffsetZ;
+        double moveZ = this.zd + playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetZ;
         double expectedX = this.x + moveX;
         double expectedY = this.y + moveY;
         double expectedZ = this.z + moveZ;

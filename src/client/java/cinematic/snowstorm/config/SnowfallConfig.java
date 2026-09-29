@@ -33,8 +33,7 @@ public class SnowfallConfig {
 
     // ==== MOVEMENT SETTINGS ====
 
-    // How much particles follow player movement (0.0 - 1.0)
-    // Higher = better follows fast movement
+    // Additional horizontal particle movement as a fraction of player velocity (0.0 - 1.0)
     public static float PLAYER_FOLLOW_STRENGTH = 0.015f;
 
     // How fast particles fall
