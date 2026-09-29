@@ -21,6 +21,7 @@ public class SnowSpawnManager {
     // Player motion tracking
     private static Vec3 lastPlayerPos = Vec3.ZERO;
     private static Vec3 playerVelocity = Vec3.ZERO;
+    private static boolean hasLastPlayerPos;
     private static final float VELOCITY_SMOOTHING = 0.3f;
 
     private static int tickCounter = 0;
@@ -29,16 +30,24 @@ public class SnowSpawnManager {
     public static void init() {
         ClientTickEvents.END_LEVEL_TICK.register(world -> {
             Minecraft mc = Minecraft.getInstance();
-            if (mc.player == null) return;
+            if (mc.player == null) {
+                lastPlayerPos = Vec3.ZERO;
+                playerVelocity = Vec3.ZERO;
+                hasLastPlayerPos = false;
+                isSnowWeatherActive = false;
+                tickCounter = 0;
+                return;
+            }
 
-            // Track player velocity for prediction
             Vec3 currentPos = mc.player.position();
-            Vec3 currentVelocity = currentPos.subtract(lastPlayerPos);
-
-            // Smooth velocity to avoid jitter
-            playerVelocity = playerVelocity.scale(1.0 - VELOCITY_SMOOTHING)
-                    .add(currentVelocity.scale(VELOCITY_SMOOTHING));
-
+            if (!hasLastPlayerPos) {
+                playerVelocity = Vec3.ZERO;
+                hasLastPlayerPos = true;
+            } else {
+                Vec3 currentVelocity = currentPos.subtract(lastPlayerPos);
+                playerVelocity = playerVelocity.scale(1.0 - VELOCITY_SMOOTHING)
+                        .add(currentVelocity.scale(VELOCITY_SMOOTHING));
+            }
             lastPlayerPos = currentPos;
 
             // Check weather conditions
@@ -93,17 +102,13 @@ public class SnowSpawnManager {
                     double dy = py + SPAWN_HEIGHT_ABOVE + diskY * planeY;
                     double dz = pz - windDrift.z + diskX * crosswindZ + diskY * planeZ;
 
-                    // Add slight initial velocity matching player movement
-                    double vx = playerVelocity.x * 0.5;
-                    double vz = playerVelocity.z * 0.5;
-
                     // Use alwaysSpawn flag to force rendering at distance
                     world.addParticle(
                             ParticleTypes.getActiveSnowType(),
                             true,
                             true,
                             dx, dy, dz,
-                            vx, 0, vz
+                            0, 0, 0
                     );
                 }
             }
@@ -116,6 +121,7 @@ public class SnowSpawnManager {
         tickCounter = 0;
         lastPlayerPos = Vec3.ZERO;
         playerVelocity = Vec3.ZERO;
+        hasLastPlayerPos = false;
     }
 
     /**
