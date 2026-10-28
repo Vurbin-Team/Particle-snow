@@ -13,12 +13,12 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class MySnowflakeParticle extends SingleQuadParticle {
-    private static final double COLLISION_EPSILON = 1.0E-5;
     private static final float FADE_START_RATIO = 0.90f;
 
     // Individual snowflake properties
@@ -28,6 +28,12 @@ public class MySnowflakeParticle extends SingleQuadParticle {
     private final float seedZ;
     private final float rotationSpeed;
     private final float fallSpeed;
+
+    // Random 0..7 so culling / ground checks of different flakes land on different ticks.
+    private final int phase;
+
+    // Counted in SnowSpawnManager so MAX_PARTICLE_COUNT works without engine-queue eviction.
+    private boolean counted;
 
     // Store initial alpha for fade calculations
     private final float initialAlpha;
@@ -76,8 +82,12 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         // Set particle lifetime (30 sec = 600 ticks)
         this.lifetime = 600;
 
-        // Ensure the particle collides with world
-        this.hasPhysics = true;
+        // No per-tick block collision (very expensive for tens of thousands of flakes).
+        // Ground is detected with a cheap heightmap check in tick().
+        this.hasPhysics = false;
+        this.phase = this.random.nextInt(8);
+        this.counted = true;
+        SnowSpawnManager.onParticleCreated();
     }
 
     @Override
@@ -119,27 +129,39 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         float swayOffsetX = sinX * amplitudeX * 0.01f; // Scale down the sway for movement
         float swayOffsetZ = cosZ * amplitudeZ * 0.01f;
 
-        // Remove the particle if collision resolution blocks movement on any axis.
         double moveX = this.xd + playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetX;
         double moveY = this.yd;
         double moveZ = this.zd + playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetZ;
-        double expectedX = this.x + moveX;
-        double expectedY = this.y + moveY;
-        double expectedZ = this.z + moveZ;
-        boolean targetChunkLoaded = this.level.hasChunkAt(BlockPos.containing(expectedX, expectedY, expectedZ));
-        this.hasPhysics = targetChunkLoaded;
+
+        // Left behind the player (elytra) or far above/below: drop immediately.
+        int phaseTick = this.age + this.phase;
+        if ((phaseTick & 3) == 0 && SnowSpawnManager.shouldCull(this.x, this.y, this.z)) {
+            this.remove();
+            return;
+        }
+
         this.move(moveX, moveY, moveZ);
 
-        if (targetChunkLoaded && (this.onGround
-                || Math.abs(this.x - expectedX) > COLLISION_EPSILON
-                || Math.abs(this.y - expectedY) > COLLISION_EPSILON
-                || Math.abs(this.z - expectedZ) > COLLISION_EPSILON)) {
+        // Landed on the surface (heightmap includes roofs, leaves, water).
+        if ((phaseTick & 7) == 0
+                && this.level.hasChunkAt(BlockPos.containing(this.x, this.y, this.z))
+                && this.y < this.level.getHeight(Heightmap.Types.MOTION_BLOCKING,
+                        (int) Math.floor(this.x), (int) Math.floor(this.z))) {
             this.remove();
             return;
         }
 
         // Rotation for visual effect (using zRotation instead of angle)
         this.roll += rotationSpeed;
+    }
+
+    @Override
+    public void remove() {
+        if (this.counted) {
+            this.counted = false;
+            SnowSpawnManager.onParticleRemoved();
+        }
+        super.remove();
     }
 
     @Override

@@ -8,6 +8,9 @@ public class SnowfallConfig {
     // weather sounds
     public static boolean ENABLE_WEATHER_SOUND = true;
     public static int MAX_PARTICLE_COUNT = 32000;
+    // Fixed capacity of the engine's particle queue (see IncreaseParticleLimitMixin).
+    // MAX_PARTICLE_COUNT is enforced by SnowSpawnManager and may change at runtime up to this value.
+    public static final int PARTICLE_QUEUE_CAPACITY = 100_000;
 
     // ==== TEXTURE SETTINGS ====
 

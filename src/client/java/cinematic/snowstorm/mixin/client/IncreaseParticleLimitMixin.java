@@ -14,6 +14,6 @@ public class IncreaseParticleLimitMixin {
 
     @ModifyConstant(method = "<init>", constant = @Constant(intValue = 16384))
     private int increaseParticleQueueCapacity(int defaultCapacity) {
-        return Math.max(defaultCapacity, SnowfallConfig.MAX_PARTICLE_COUNT);
+        return Math.max(defaultCapacity, SnowfallConfig.PARTICLE_QUEUE_CAPACITY);
     }
 }

@@ -15,11 +15,12 @@ public class FogRendererMixin {
     @Inject(method = "setupFog", at = @At("RETURN"))
     private void applyWeatherFog(CallbackInfoReturnable<FogData> cir) {
         WeatherFogHandler.updateFog();
+        FogData fog = cir.getReturnValue();
         if (!WeatherFogHandler.shouldApplyWeatherFog()) {
+            WeatherFogHandler.setEffectiveFogEnd((float) fog.renderDistanceEnd);
             return;
         }
 
-        FogData fog = cir.getReturnValue();
         fog.environmentalStart *= WeatherFogHandler.getFogStart();
         fog.environmentalEnd *= WeatherFogHandler.getFogEnd();
         fog.renderDistanceStart *= WeatherFogHandler.getFogStart();
@@ -35,5 +36,6 @@ public class FogRendererMixin {
                 color.z * colorMultiplier[2],
                 color.w
         );
+        WeatherFogHandler.setEffectiveFogEnd((float) fog.renderDistanceEnd);
     }
 }
