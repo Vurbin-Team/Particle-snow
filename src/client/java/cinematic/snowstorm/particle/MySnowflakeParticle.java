@@ -10,8 +10,8 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
@@ -122,8 +122,8 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         float t = this.age * SnowfallConfig.SWAY_SPEED;
 
         // Independent X and Z oscillations for more natural movement
-        float sinX = (float)Math.sin(t + seedX);
-        float cosZ = (float)Math.cos(t * 1.2f + seedZ);
+        float sinX = Mth.sin(t + seedX);
+        float cosZ = Mth.cos(t * 1.2f + seedZ);
 
         // Apply oscillations directly to position (this is fine for sway)
         float swayOffsetX = sinX * amplitudeX * 0.01f; // Scale down the sway for movement
@@ -140,15 +140,21 @@ public class MySnowflakeParticle extends SingleQuadParticle {
             return;
         }
 
-        this.move(moveX, moveY, moveZ);
+        // Direct displacement: Particle.move() would allocate a new AABB per flake per tick.
+        // NOTE: the bounding box is no longer updated; if flakes vanish at screen edges, revert this patch.
+        this.x += moveX;
+        this.y += moveY;
+        this.z += moveZ;
 
         // Landed on the surface (heightmap includes roofs, leaves, water).
-        if ((phaseTick & 7) == 0
-                && this.level.hasChunkAt(BlockPos.containing(this.x, this.y, this.z))
-                && this.y < this.level.getHeight(Heightmap.Types.MOTION_BLOCKING,
-                        (int) Math.floor(this.x), (int) Math.floor(this.z))) {
-            this.remove();
-            return;
+        if ((phaseTick & 7) == 0) {
+            int bx = Mth.floor(this.x);
+            int bz = Mth.floor(this.z);
+            if (this.level.hasChunkAt(bx, bz)
+                    && this.y < this.level.getHeight(Heightmap.Types.MOTION_BLOCKING, bx, bz)) {
+                this.remove();
+                return;
+            }
         }
 
         // Rotation for visual effect (using zRotation instead of angle)

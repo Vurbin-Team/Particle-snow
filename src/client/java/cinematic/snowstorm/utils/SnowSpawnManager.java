@@ -6,7 +6,6 @@ import cinematic.snowstorm.particle.MySnowflakeParticle;
 import cinematic.snowstorm.particle.ParticleTypes;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -200,7 +199,7 @@ public class SnowSpawnManager {
                 // (caves, buildings): such a flake would die on its first tick anyway.
                 int bx = (int) Math.floor(dx);
                 int bz = (int) Math.floor(dz);
-                if (!world.hasChunkAt(new BlockPos(bx, (int) Math.floor(dy), bz))) continue;
+                if (!world.hasChunkAt(bx, bz)) continue;
                 if (dy <= world.getHeight(Heightmap.Types.MOTION_BLOCKING, bx, bz)) continue;
 
                 world.addParticle(snowType, true, true, dx, dy, dz, 0, 0, 0);
