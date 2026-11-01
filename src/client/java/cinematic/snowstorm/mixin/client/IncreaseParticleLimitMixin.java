@@ -31,6 +31,6 @@ public class IncreaseParticleLimitMixin {
     }
 
     private static int particleLimit() {
-        return Math.max(1, SnowfallConfig.MAX_PARTICLE_COUNT);
+        return SnowfallConfig.PARTICLE_QUEUE_CAPACITY;
     }
 }
