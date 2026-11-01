@@ -18,8 +18,21 @@ public class WeatherFogHandler {
     private static float targetSkyFogStart = 1.0f;
     private static float targetSkyFogEnd = 1.0f;
 
-    // Smooth transition speed
-    private static final float TRANSITION_SPEED = 0.05f;
+    // Real fog end in blocks (after weather scaling); snow spawn/cull radii are clamped to it.
+    private static float effectiveFogEnd = Float.MAX_VALUE;
+
+    public static float getEffectiveFogEnd() {
+        return effectiveFogEnd;
+    }
+
+    public static void setEffectiveFogEnd(float value) {
+        effectiveFogEnd = value;
+    }
+
+    // Exponential approach rate per second (equals the old 0.05 per frame at 60 FPS).
+    // setupFog can run several times per frame, so the step is based on real time, not on call count.
+    private static final float TRANSITION_RATE = 3.08f;
+    private static long lastUpdateNanos = 0L;
 
     /**
      * Updates fog values based on current weather
@@ -61,10 +74,14 @@ public class WeatherFogHandler {
         }
 
         // Smoothly transition to target values
-        currentFogStart = lerp(currentFogStart, targetFogStart, TRANSITION_SPEED);
-        currentFogEnd = lerp(currentFogEnd, targetFogEnd, TRANSITION_SPEED);
-        currentSkyFogStart = lerp(currentSkyFogStart, targetSkyFogStart, TRANSITION_SPEED);
-        currentSkyFogEnd = lerp(currentSkyFogEnd, targetSkyFogEnd, TRANSITION_SPEED);
+        long now = System.nanoTime();
+        float dt = lastUpdateNanos == 0L ? 0.016f : Math.min(0.25f, (now - lastUpdateNanos) / 1.0E9f);
+        lastUpdateNanos = now;
+        float step = 1.0f - (float) Math.exp(-TRANSITION_RATE * dt);
+        currentFogStart = lerp(currentFogStart, targetFogStart, step);
+        currentFogEnd = lerp(currentFogEnd, targetFogEnd, step);
+        currentSkyFogStart = lerp(currentSkyFogStart, targetSkyFogStart, step);
+        currentSkyFogEnd = lerp(currentSkyFogEnd, targetSkyFogEnd, step);
     }
 
     /**

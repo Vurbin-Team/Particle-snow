@@ -61,6 +61,8 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
 
             presets.addEntry(entryBuilder.startIntField(Component.literal("Particle max count"), config.maxParticleCount)
                     .setDefaultValue(32000)
+                    .setMin(0)
+                    .setMax(SnowfallConfig.PARTICLE_QUEUE_CAPACITY)
                     .setTooltip(Component.literal("Maximum active snow particles"))
                     .setSaveConsumer(val -> SnowfallConfig.MAX_PARTICLE_COUNT = val)
                     .build());

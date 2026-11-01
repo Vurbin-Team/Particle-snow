@@ -3,6 +3,7 @@ package cinematic.snowstorm.config;
 import cinematic.snowstorm.utils.SnowSpawnManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -27,10 +28,12 @@ public class SnowfallConfigManager {
         if (Files.exists(CONFIG_PATH)) {
             try {
                 String json = Files.readString(CONFIG_PATH);
-                configData = GSON.fromJson(json, SnowfallConfigData.class);
+                SnowfallConfigData loaded = GSON.fromJson(json, SnowfallConfigData.class);
+                // fromJson returns null for an empty file
+                configData = loaded != null ? loaded : new SnowfallConfigData();
                 applyToRuntime();
                 System.out.println("[Snowstorm] Config loaded from " + CONFIG_PATH);
-            } catch (IOException e) {
+            } catch (IOException | JsonParseException e) {
                 System.err.println("[Snowstorm] Failed to load config: " + e.getMessage());
                 configData = new SnowfallConfigData();
                 save();
@@ -85,6 +88,21 @@ public class SnowfallConfigManager {
         SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
         SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
         SnowfallConfig.REALISTIC_SNOW = configData.realisticSnow;
+        sanitize();
+    }
+
+    /**
+     * Keep hand-edited / menu-entered values inside ranges the spawner can handle.
+     */
+    private static void sanitize() {
+        SnowfallConfig.SPAWN_HEIGHT = Math.max(1, SnowfallConfig.SPAWN_HEIGHT);
+        SnowfallConfig.SPAWN_RADIUS = Math.max(1, SnowfallConfig.SPAWN_RADIUS);
+        SnowfallConfig.FAR_SPAWN_RADIUS = Math.max(1, SnowfallConfig.FAR_SPAWN_RADIUS);
+        SnowfallConfig.FAR_SPAWN_CHANCE = Math.max(0.0f, Math.min(1.0f, SnowfallConfig.FAR_SPAWN_CHANCE));
+        SnowfallConfig.PARTICLES_PER_TICK = Math.max(0, SnowfallConfig.PARTICLES_PER_TICK);
+        SnowfallConfig.SPAWN_INTERVAL = Math.max(1, SnowfallConfig.SPAWN_INTERVAL);
+        SnowfallConfig.MAX_PARTICLE_COUNT = Math.max(0,
+                Math.min(SnowfallConfig.PARTICLE_QUEUE_CAPACITY, SnowfallConfig.MAX_PARTICLE_COUNT));
     }
 
     /**
@@ -119,6 +137,7 @@ public class SnowfallConfigManager {
      * Apply current runtime values (use after modifying SnowfallConfig fields)
      */
     public static void applyAndSave() {
+        sanitize();
         captureFromRuntime();
         save();
         SnowSpawnManager.reload();
