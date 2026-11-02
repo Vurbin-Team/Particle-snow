@@ -11,16 +11,12 @@ public class FogConfig {
     public static boolean ENABLE_THUNDER_FOG = true;
 
     // Rain fog settings (distance multiplier - lower = closer fog)
-    public static float RAIN_FOG_START = 0.3f;  // Start distance (40% of render distance)
-    public static float RAIN_FOG_END = 0.6f;    // End distance (80% of render distance)
+    public static float RAIN_FOG_START = 0.3f;  // Start distance (30% of render distance)
+    public static float RAIN_FOG_END = 0.6f;    // End distance (60% of render distance)
 
     // Thunder fog settings (even closer fog for dramatic effect)
-    public static float THUNDER_FOG_START = 0.2f;  // Start distance (30% of render distance)
-    public static float THUNDER_FOG_END = 0.5f;    // End distance (70% of render distance)
-
-    // Fog density/thickness (higher = thicker fog)
-    public static float RAIN_FOG_DENSITY = 1.0f;
-    public static float THUNDER_FOG_DENSITY = 1.3f;
+    public static float THUNDER_FOG_START = 0.2f;  // Start distance (20% of render distance)
+    public static float THUNDER_FOG_END = 0.5f;    // End distance (50% of render distance)
 
     // Sky fog settings (applies to sky rendering)
     public static float RAIN_SKY_FOG_START = 0.3f;

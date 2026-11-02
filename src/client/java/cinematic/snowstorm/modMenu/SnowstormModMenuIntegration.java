@@ -59,6 +59,25 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
                     .setSaveConsumer(val -> SnowfallConfig.ENABLE_WEATHER_SOUND = val)
                     .build());
 
+            presets.addEntry(entryBuilder.startBooleanToggle(
+                            Component.literal("Cold Biomes Only"),
+                            config.coldBiomesOnly)
+                    .setDefaultValue(false)
+                    .setTooltip(
+                            Component.literal("Off: snow wherever it rains (not in deserts)"),
+                            Component.literal("On: snow only in cold biomes; rain in warm biomes is not drawn")
+                    )
+                    .setSaveConsumer(val -> SnowfallConfig.COLD_BIOMES_ONLY = val)
+                    .build());
+
+            presets.addEntry(entryBuilder.startBooleanToggle(
+                            Component.literal("Disable Lightning"),
+                            config.disableLightning)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.literal("On: thunderstorms have no lightning bolts"))
+                    .setSaveConsumer(val -> SnowfallConfig.DISABLE_LIGHTNING = val)
+                    .build());
+
             presets.addEntry(entryBuilder.startIntField(Component.literal("Particle max count"), config.maxParticleCount)
                     .setDefaultValue(32000)
                     .setMin(0)
@@ -276,6 +295,12 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
                     .setTooltip(Component.literal("Average time between gusts (lower = more frequent)"))
                     .setSaveConsumer(val -> SnowfallConfig.GUST_PERIOD_SECONDS = val)
                     .build());
+
+            effects.addEntry(entryBuilder.startTextDescription(
+                    Component.literal("§eSpeed Streaks look twisted or point the wrong way? Turn off "
+                            + "\"GPU Particle Acceleration\" in the AsyncParticles settings. "
+                            + "§cWarning: this can reduce FPS with many particles by 2-3 times.")
+            ).build());
 
             effects.addEntry(entryBuilder.startBooleanToggle(
                             Component.literal("Speed Streaks"), config.enableSpeedStreaks)

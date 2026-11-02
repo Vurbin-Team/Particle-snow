@@ -60,7 +60,17 @@ public class MyStreakParticle extends SingleQuadParticle {
         // Fade in and out over the short lifetime; invisible in the cleared middle of the screen.
         this.alpha = this.baseAlpha * (float) Math.sin(Math.PI * t)
                 * SpeedStreaks.centerFade(this.x, this.y, this.z);
-        this.roll = SpeedStreaks.streakRoll(this.x, this.y, this.z);
+        // The renderer interpolates oRoll -> roll linearly. A raw atan2 result jumps by a full turn when
+        // the angle crosses +-PI, which spins the streak once through all angles ("swirl").
+        this.roll = nearestEquivalent(SpeedStreaks.streakRoll(this.x, this.y, this.z), this.oRoll);
+    }
+
+    /** The angle equal to {@code target} modulo half a turn (a line looks the same upside down) closest to {@code reference}. */
+    private static float nearestEquivalent(float target, float reference) {
+        float delta = (target - reference) % (float) Math.PI;
+        if (delta > Math.PI / 2) delta -= (float) Math.PI;
+        else if (delta < -Math.PI / 2) delta += (float) Math.PI;
+        return reference + delta;
     }
 
     @Override

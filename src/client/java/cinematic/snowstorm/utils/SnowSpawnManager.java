@@ -36,11 +36,13 @@ public class SnowSpawnManager {
     private static boolean isSnowWeatherActive = false;
     private static boolean wasSnowing = false;
 
-    // Pre-fill: when snow starts (or after a teleport/join) fill the whole fall column at once,
-    // otherwise the first flakes need ~20 s to fall from the spawn plane to the player.
+    // Pre-fill: the fall column is filled up to the current snow strength (0..1), otherwise the first
+    // flakes need ~20 s to fall from the spawn plane to the player. A jump (join, teleport) is filled
+    // over PREFILL_TICKS; a smooth rain ramp-up is followed flake by flake.
     private static final int PREFILL_TICKS = 40;
     private static final double PREFILL_BELOW = 16.0;
-    private static int prefillTicksLeft = 0;
+    private static float filledStrength = 0f;
+    private static float prefillAccumulator = 0f;
 
     // Fast movement: flakes spawned on the plane above the player need ~SPAWN_HEIGHT/fall ticks to
     // reach eye level, so the area the player flies into is empty and the flakes spawned above the
@@ -74,7 +76,8 @@ public class SnowSpawnManager {
                 wasSnowing = false;
                 spawnAccumulator = 0f;
                 fillAccumulator = 0f;
-                prefillTicksLeft = 0;
+                filledStrength = 0f;
+                prefillAccumulator = 0f;
                 liveCount = 0;
                 cullRadiusSq = Double.MAX_VALUE;
                 cullTop = Double.MAX_VALUE;
@@ -148,7 +151,9 @@ public class SnowSpawnManager {
             // The spawn disk is tilted along the wind, so its top edge is above SPAWN_HEIGHT.
             cullTop = SPAWN_HEIGHT_ABOVE + planeY * farRadius + 16;
 
-            boolean shouldSnow = world.isRaining() || world.isThundering();
+            // 0..1: the vanilla rain level in a biome with precipitation, so snow fades in and out with it.
+            float strength = WeatherState.strength(world, mc.player.blockPosition());
+            boolean shouldSnow = strength > 0f;
             isSnowWeatherActive = shouldSnow;
 
             // Optional effects; each one returns immediately when its toggle is off.
@@ -159,7 +164,8 @@ public class SnowSpawnManager {
                 wasSnowing = false;
                 spawnAccumulator = 0f;
                 fillAccumulator = 0f;
-                prefillTicksLeft = 0;
+                filledStrength = 0f;
+                prefillAccumulator = 0f;
                 if (++idleTicks > ALL_DEAD_AFTER_TICKS) {
                     liveCount = 0; // every flake is dead by now; drops any drift in the counter
                 }
@@ -167,20 +173,27 @@ public class SnowSpawnManager {
             }
             idleTicks = 0;
             if (!wasSnowing || teleported) {
-                prefillTicksLeft = PREFILL_TICKS;
+                filledStrength = 0f;
+                prefillAccumulator = 0f;
             }
             wasSnowing = true;
 
-            double perTickRate = (double) SPAWN_COUNT_PER_TICK / Math.max(1, TICKS_BETWEEN_SPAWN) * areaScale;
+            double fullRate = (double) SPAWN_COUNT_PER_TICK / Math.max(1, TICKS_BETWEEN_SPAWN) * areaScale;
+            double perTickRate = fullRate * strength;
             spawnAccumulator += (float) perTickRate;
             int regularCount = (int) spawnAccumulator;
             spawnAccumulator -= regularCount;
 
+            // The column is already filled up to what the weaker rain needed; only the new part is added.
+            filledStrength = Math.min(filledStrength, strength);
             int prefillCount = 0;
-            if (prefillTicksLeft > 0) {
-                prefillTicksLeft--;
-                double steadyState = perTickRate * (SPAWN_HEIGHT_ABOVE + PREFILL_BELOW) / averageFallSpeed;
-                prefillCount = (int) Math.ceil(steadyState / PREFILL_TICKS);
+            float step = Math.min(strength - filledStrength, 1.0f / PREFILL_TICKS);
+            if (step > 0f) {
+                filledStrength += step;
+                double steadyState = fullRate * (SPAWN_HEIGHT_ABOVE + PREFILL_BELOW) / averageFallSpeed;
+                prefillAccumulator += (float) (steadyState * step);
+                prefillCount = (int) prefillAccumulator;
+                prefillAccumulator -= prefillCount;
             }
 
             double px = currentPos.x + playerVelocity.x * 5;
