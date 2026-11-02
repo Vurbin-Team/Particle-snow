@@ -1,6 +1,9 @@
 package cinematic.snowstorm.utils;
 
 import cinematic.snowstorm.config.SnowfallConfig;
+import cinematic.snowstorm.effects.FrostBreath;
+import cinematic.snowstorm.effects.SpeedStreaks;
+import cinematic.snowstorm.effects.WindGusts;
 import cinematic.snowstorm.fog.WeatherFogHandler;
 import cinematic.snowstorm.particle.MySnowflakeParticle;
 import cinematic.snowstorm.particle.ParticleTypes;
@@ -139,6 +142,11 @@ public class SnowSpawnManager {
 
             boolean shouldSnow = world.isRaining() || world.isThundering();
             isSnowWeatherActive = shouldSnow;
+
+            // Optional effects; each one returns immediately when its toggle is off.
+            WindGusts.tick(shouldSnow);
+            SpeedStreaks.tick(world, mc.player, shouldSnow);
+            FrostBreath.tick(world, mc.player, shouldSnow);
             if (!shouldSnow) {
                 wasSnowing = false;
                 spawnAccumulator = 0f;

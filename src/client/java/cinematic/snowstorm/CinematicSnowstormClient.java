@@ -1,7 +1,9 @@
 package cinematic.snowstorm;
 
 import cinematic.snowstorm.config.SnowfallConfigManager;
+import cinematic.snowstorm.particle.MyBreathParticle;
 import cinematic.snowstorm.particle.MySnowflakeParticle;
+import cinematic.snowstorm.particle.MyStreakParticle;
 import cinematic.snowstorm.particle.ParticleTypes;
 import cinematic.snowstorm.sounds.AdvancedWeatherSoundManager;
 import cinematic.snowstorm.sounds.ModSounds;
@@ -26,6 +28,8 @@ public class CinematicSnowstormClient implements ClientModInitializer {
 		// only their sprite textures (defined in the particle JSON files) differ.
 		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE, MySnowflakeParticle.Factory::new);
 		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE_REALISTIC, MySnowflakeParticle.Factory::new);
+		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWSTREAK, MyStreakParticle.Factory::new);
+		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_BREATH, MyBreathParticle.Factory::new);
 
 		// Запуск менеджера спавна снега / тумана
 		SnowSpawnManager.init();

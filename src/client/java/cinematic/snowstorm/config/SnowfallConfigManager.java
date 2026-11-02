@@ -88,6 +88,19 @@ public class SnowfallConfigManager {
         SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
         SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
         SnowfallConfig.REALISTIC_SNOW = configData.realisticSnow;
+        SnowfallConfig.ENABLE_WIND_GUSTS = configData.enableWindGusts;
+        SnowfallConfig.GUST_STRENGTH = configData.gustStrength;
+        SnowfallConfig.GUST_PERIOD_SECONDS = configData.gustPeriodSeconds;
+        SnowfallConfig.ENABLE_SPEED_STREAKS = configData.enableSpeedStreaks;
+        SnowfallConfig.STREAK_SPEED_THRESHOLD = configData.streakSpeedThreshold;
+        SnowfallConfig.STREAK_DENSITY = configData.streakDensity;
+        SnowfallConfig.STREAK_LENGTH = configData.streakLength;
+        SnowfallConfig.STREAK_CENTER_CLEARANCE = configData.streakCenterClearance;
+        SnowfallConfig.ENABLE_FROST_BREATH = configData.enableFrostBreath;
+        SnowfallConfig.BREATH_INTERVAL_SECONDS = configData.breathIntervalSeconds;
+        SnowfallConfig.BREATH_SIZE = configData.breathSize;
+        SnowfallConfig.BREATH_INTENSITY = configData.breathIntensity;
+        SnowfallConfig.BREATH_FIRST_PERSON = configData.breathFirstPerson;
         sanitize();
     }
 
@@ -103,6 +116,21 @@ public class SnowfallConfigManager {
         SnowfallConfig.SPAWN_INTERVAL = Math.max(1, SnowfallConfig.SPAWN_INTERVAL);
         SnowfallConfig.MAX_PARTICLE_COUNT = Math.max(0,
                 Math.min(SnowfallConfig.PARTICLE_QUEUE_CAPACITY, SnowfallConfig.MAX_PARTICLE_COUNT));
+        // Effects: hand-edited values must not break (or flood) the effects.
+        SnowfallConfig.GUST_STRENGTH = clamp(SnowfallConfig.GUST_STRENGTH, 0.0f, 5.0f);
+        SnowfallConfig.GUST_PERIOD_SECONDS = clamp(SnowfallConfig.GUST_PERIOD_SECONDS, 3.0f, 120.0f);
+        SnowfallConfig.STREAK_SPEED_THRESHOLD = clamp(SnowfallConfig.STREAK_SPEED_THRESHOLD, 0.05f, 3.0f);
+        SnowfallConfig.STREAK_DENSITY = clamp(SnowfallConfig.STREAK_DENSITY, 0.0f, 5.0f);
+        SnowfallConfig.STREAK_LENGTH = clamp(SnowfallConfig.STREAK_LENGTH, 0.2f, 5.0f);
+        SnowfallConfig.STREAK_CENTER_CLEARANCE = clamp(SnowfallConfig.STREAK_CENTER_CLEARANCE, 0.0f, 0.9f);
+        SnowfallConfig.BREATH_INTERVAL_SECONDS = clamp(SnowfallConfig.BREATH_INTERVAL_SECONDS, 0.5f, 30.0f);
+        SnowfallConfig.BREATH_SIZE = clamp(SnowfallConfig.BREATH_SIZE, 0.3f, 5.0f);
+        SnowfallConfig.BREATH_INTENSITY = clamp(SnowfallConfig.BREATH_INTENSITY, 0.2f, 3.0f);
+    }
+
+    private static float clamp(float value, float min, float max) {
+        if (Float.isNaN(value)) return min;
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
@@ -131,6 +159,19 @@ public class SnowfallConfigManager {
         configData.enableWeatherSound = SnowfallConfig.ENABLE_WEATHER_SOUND;
         configData.maxParticleCount = SnowfallConfig.MAX_PARTICLE_COUNT;
         configData.realisticSnow = SnowfallConfig.REALISTIC_SNOW;
+        configData.enableWindGusts = SnowfallConfig.ENABLE_WIND_GUSTS;
+        configData.gustStrength = SnowfallConfig.GUST_STRENGTH;
+        configData.gustPeriodSeconds = SnowfallConfig.GUST_PERIOD_SECONDS;
+        configData.enableSpeedStreaks = SnowfallConfig.ENABLE_SPEED_STREAKS;
+        configData.streakSpeedThreshold = SnowfallConfig.STREAK_SPEED_THRESHOLD;
+        configData.streakDensity = SnowfallConfig.STREAK_DENSITY;
+        configData.streakLength = SnowfallConfig.STREAK_LENGTH;
+        configData.streakCenterClearance = SnowfallConfig.STREAK_CENTER_CLEARANCE;
+        configData.enableFrostBreath = SnowfallConfig.ENABLE_FROST_BREATH;
+        configData.breathIntervalSeconds = SnowfallConfig.BREATH_INTERVAL_SECONDS;
+        configData.breathSize = SnowfallConfig.BREATH_SIZE;
+        configData.breathIntensity = SnowfallConfig.BREATH_INTENSITY;
+        configData.breathFirstPerson = SnowfallConfig.BREATH_FIRST_PERSON;
     }
 
     /**

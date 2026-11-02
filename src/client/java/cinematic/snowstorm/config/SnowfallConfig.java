@@ -17,6 +17,29 @@ public class SnowfallConfig {
     // Use soft, photo-realistic snow textures instead of the stylized pixel-art ones
     public static boolean REALISTIC_SNOW = false;
 
+    // ==== EFFECTS ====
+    // Independent of the presets: presets never touch these values.
+
+    // Wind gusts: strength is a multiplier (1.0 = gusts add up to 0.03 blocks/tick), period in seconds
+    public static boolean ENABLE_WIND_GUSTS = true;
+    public static float GUST_STRENGTH = 1.0f;
+    public static float GUST_PERIOD_SECONDS = 12.0f;
+
+    // Speed streaks: threshold in blocks per tick (0.5 = 10 blocks/s), density and length are multipliers
+    public static boolean ENABLE_SPEED_STREAKS = true;
+    public static float STREAK_SPEED_THRESHOLD = 0.5f;
+    public static float STREAK_DENSITY = 1.0f;
+    public static float STREAK_LENGTH = 1.0f;
+    // Share of the view (0.0 - 0.9) around the screen center that stays free of streaks
+    public static float STREAK_CENTER_CLEARANCE = 0.45f;
+
+    // Frost breath: interval in seconds, size scales the puffs (1.0 = default size), intensity is their opacity
+    public static boolean ENABLE_FROST_BREATH = true;
+    public static float BREATH_INTERVAL_SECONDS = 3.0f;
+    public static float BREATH_SIZE = 1.0f;
+    public static float BREATH_INTENSITY = 1.0f;
+    public static boolean BREATH_FIRST_PERSON = true;
+
     // ==== SPAWN SETTINGS ====
 
     // How high above player to spawn particles

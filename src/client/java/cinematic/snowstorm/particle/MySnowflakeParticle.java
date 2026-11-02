@@ -2,6 +2,7 @@ package cinematic.snowstorm.particle;
 
 import cinematic.snowstorm.utils.SnowSpawnManager;
 import cinematic.snowstorm.config.SnowfallConfig;
+import cinematic.snowstorm.effects.WindGusts;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.particle.Particle;
@@ -129,9 +130,11 @@ public class MySnowflakeParticle extends SingleQuadParticle {
         float swayOffsetX = sinX * amplitudeX * 0.01f; // Scale down the sway for movement
         float swayOffsetZ = cosZ * amplitudeZ * 0.01f;
 
-        double moveX = this.xd + playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetX;
+        double moveX = this.xd + playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetX
+                + WindGusts.getGustX();
         double moveY = this.yd;
-        double moveZ = this.zd + playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetZ;
+        double moveZ = this.zd + playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetZ
+                + WindGusts.getGustZ();
 
         // Left behind the player (elytra) or far above/below: drop immediately.
         int phaseTick = this.age + this.phase;
