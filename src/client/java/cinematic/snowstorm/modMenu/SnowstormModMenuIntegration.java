@@ -249,6 +249,104 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
                     .setSaveConsumer(val -> SnowfallConfig.ROTATION_SPEED = val)
                     .build());
 
+            // ==== EFFECTS (independent of presets) ====
+            ConfigCategory effects = builder.getOrCreateCategory(Component.literal("Effects"));
+
+            effects.addEntry(entryBuilder.startTextDescription(
+                    Component.literal("§7Extra effects. Presets never change them; each one can be switched off.")
+            ).build());
+
+            effects.addEntry(entryBuilder.startBooleanToggle(
+                            Component.literal("Wind Gusts"), config.enableWindGusts)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.literal("The wind pulses in short gusts on top of the configured wind"))
+                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_WIND_GUSTS = val)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Gust Strength (%)"),
+                            Math.round(config.gustStrength * 100), 0, 300)
+                    .setDefaultValue(100)
+                    .setTooltip(Component.literal("100% = gusts add up to 0.03 blocks per tick"))
+                    .setSaveConsumer(val -> SnowfallConfig.GUST_STRENGTH = val / 100.0f)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Gust Period (seconds)"),
+                            Math.round(config.gustPeriodSeconds), 3, 60)
+                    .setDefaultValue(12)
+                    .setTooltip(Component.literal("Average time between gusts (lower = more frequent)"))
+                    .setSaveConsumer(val -> SnowfallConfig.GUST_PERIOD_SECONDS = val)
+                    .build());
+
+            effects.addEntry(entryBuilder.startBooleanToggle(
+                            Component.literal("Speed Streaks"), config.enableSpeedStreaks)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.literal("Streaks rush past you when moving fast in snowfall (elytra, boats, falling)"))
+                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_SPEED_STREAKS = val)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Streak Speed Threshold (blocks/s)"),
+                            Math.round(config.streakSpeedThreshold * 20), 3, 40)
+                    .setDefaultValue(10)
+                    .setTooltip(Component.literal("Streaks start above this speed. Sprinting is about 6, elytra 30+"))
+                    .setSaveConsumer(val -> SnowfallConfig.STREAK_SPEED_THRESHOLD = val / 20.0f)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Streak Density (%)"),
+                            Math.round(config.streakDensity * 100), 0, 300)
+                    .setDefaultValue(100)
+                    .setTooltip(Component.literal("How many streaks appear"))
+                    .setSaveConsumer(val -> SnowfallConfig.STREAK_DENSITY = val / 100.0f)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Streak Length (%)"),
+                            Math.round(config.streakLength * 100), 30, 300)
+                    .setDefaultValue(100)
+                    .setTooltip(Component.literal("Size of each streak"))
+                    .setSaveConsumer(val -> SnowfallConfig.STREAK_LENGTH = val / 100.0f)
+                    .build());
+
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Streak Center Clearance (%)"),
+                            Math.round(config.streakCenterClearance * 100), 0, 90)
+                    .setDefaultValue(45)
+                    .setTooltip(Component.literal("Keeps the middle of the screen free of streaks (0 = streaks everywhere)"))
+                    .setSaveConsumer(val -> SnowfallConfig.STREAK_CENTER_CLEARANCE = val / 100.0f)
+                    .build());
+
+            effects.addEntry(entryBuilder.startBooleanToggle(
+                            Component.literal("Frost Breath"), config.enableFrostBreath)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.literal("Breath vapor at your mouth while it snows and you are outside"))
+                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_FROST_BREATH = val)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Breath Interval (seconds)"),
+                            Math.round(config.breathIntervalSeconds), 1, 10)
+                    .setDefaultValue(3)
+                    .setTooltip(Component.literal("Time between breaths"))
+                    .setSaveConsumer(val -> SnowfallConfig.BREATH_INTERVAL_SECONDS = val)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Breath Size (%)"),
+                            Math.round(config.breathSize * 100), 30, 400)
+                    .setDefaultValue(100)
+                    .setTooltip(Component.literal("Size of the vapor puffs (100% = default)"))
+                    .setSaveConsumer(val -> SnowfallConfig.BREATH_SIZE = val / 100.0f)
+                    .build());
+            effects.addEntry(entryBuilder.startIntSlider(
+                            Component.literal("Breath Opacity (%)"),
+                            Math.round(config.breathIntensity * 100), 30, 200)
+                    .setDefaultValue(100)
+                    .setTooltip(Component.literal("How visible the vapor is"))
+                    .setSaveConsumer(val -> SnowfallConfig.BREATH_INTENSITY = val / 100.0f)
+                    .build());
+            effects.addEntry(entryBuilder.startBooleanToggle(
+                            Component.literal("Breath In First Person"), config.breathFirstPerson)
+                    .setDefaultValue(true)
+                    .setTooltip(Component.literal("Off: vapor only shows in third person"))
+                    .setSaveConsumer(val -> SnowfallConfig.BREATH_FIRST_PERSON = val)
+                    .build());
+
             return builder.build();
         };
     }

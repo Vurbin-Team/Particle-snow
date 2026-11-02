@@ -1,0 +1,883 @@
+diff --git a/src/client/java/cinematic/snowstorm/CinematicSnowstormClient.java b/src/client/java/cinematic/snowstorm/CinematicSnowstormClient.java
+index 5efa6c1..dde90b6 100644
+--- a/src/client/java/cinematic/snowstorm/CinematicSnowstormClient.java
++++ b/src/client/java/cinematic/snowstorm/CinematicSnowstormClient.java
+@@ -1,7 +1,9 @@
+ package cinematic.snowstorm;
+ 
+ import cinematic.snowstorm.config.SnowfallConfigManager;
++import cinematic.snowstorm.particle.MyBreathParticle;
+ import cinematic.snowstorm.particle.MySnowflakeParticle;
++import cinematic.snowstorm.particle.MyStreakParticle;
+ import cinematic.snowstorm.particle.ParticleTypes;
+ import cinematic.snowstorm.sounds.AdvancedWeatherSoundManager;
+ import cinematic.snowstorm.sounds.ModSounds;
+@@ -26,6 +28,8 @@ public class CinematicSnowstormClient implements ClientModInitializer {
+ 		// only their sprite textures (defined in the particle JSON files) differ.
+ 		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE, MySnowflakeParticle.Factory::new);
+ 		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWFLAKE_REALISTIC, MySnowflakeParticle.Factory::new);
++		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_SNOWSTREAK, MyStreakParticle.Factory::new);
++		ParticleProviderRegistry.getInstance().register(ParticleTypes.MY_BREATH, MyBreathParticle.Factory::new);
+ 
+ 		// Запуск менеджера спавна снега / тумана
+ 		SnowSpawnManager.init();
+diff --git a/src/client/java/cinematic/snowstorm/config/SnowfallConfig.java b/src/client/java/cinematic/snowstorm/config/SnowfallConfig.java
+index 0d2b3e2..bd9aceb 100644
+--- a/src/client/java/cinematic/snowstorm/config/SnowfallConfig.java
++++ b/src/client/java/cinematic/snowstorm/config/SnowfallConfig.java
+@@ -17,6 +17,29 @@ public class SnowfallConfig {
+     // Use soft, photo-realistic snow textures instead of the stylized pixel-art ones
+     public static boolean REALISTIC_SNOW = false;
+ 
++    // ==== EFFECTS ====
++    // Independent of the presets: presets never touch these values.
++
++    // Wind gusts: strength is a multiplier (1.0 = gusts add up to 0.03 blocks/tick), period in seconds
++    public static boolean ENABLE_WIND_GUSTS = true;
++    public static float GUST_STRENGTH = 1.0f;
++    public static float GUST_PERIOD_SECONDS = 12.0f;
++
++    // Speed streaks: threshold in blocks per tick (0.5 = 10 blocks/s), density and length are multipliers
++    public static boolean ENABLE_SPEED_STREAKS = true;
++    public static float STREAK_SPEED_THRESHOLD = 0.5f;
++    public static float STREAK_DENSITY = 1.0f;
++    public static float STREAK_LENGTH = 1.0f;
++    // Share of the view (0.0 - 0.9) around the screen center that stays free of streaks
++    public static float STREAK_CENTER_CLEARANCE = 0.45f;
++
++    // Frost breath: interval in seconds, size scales the puffs (1.0 = default size), intensity is their opacity
++    public static boolean ENABLE_FROST_BREATH = true;
++    public static float BREATH_INTERVAL_SECONDS = 3.0f;
++    public static float BREATH_SIZE = 1.0f;
++    public static float BREATH_INTENSITY = 1.0f;
++    public static boolean BREATH_FIRST_PERSON = true;
++
+     // ==== SPAWN SETTINGS ====
+ 
+     // How high above player to spawn particles
+diff --git a/src/client/java/cinematic/snowstorm/config/SnowfallConfigData.java b/src/client/java/cinematic/snowstorm/config/SnowfallConfigData.java
+index 5a7ac8e..9aeece2 100644
+--- a/src/client/java/cinematic/snowstorm/config/SnowfallConfigData.java
++++ b/src/client/java/cinematic/snowstorm/config/SnowfallConfigData.java
+@@ -36,4 +36,21 @@ public class SnowfallConfigData {
+ 
+     // Texture Settings
+     public boolean realisticSnow = false;
++
++    // Effects (independent of presets)
++    public boolean enableWindGusts = true;
++    public float gustStrength = 1.0f;
++    public float gustPeriodSeconds = 12.0f;
++
++    public boolean enableSpeedStreaks = true;
++    public float streakSpeedThreshold = 0.5f;
++    public float streakDensity = 1.0f;
++    public float streakLength = 1.0f;
++    public float streakCenterClearance = 0.45f;
++
++    public boolean enableFrostBreath = true;
++    public float breathIntervalSeconds = 3.0f;
++    public float breathSize = 1.0f;
++    public float breathIntensity = 1.0f;
++    public boolean breathFirstPerson = true;
+ }
+\ No newline at end of file
+diff --git a/src/client/java/cinematic/snowstorm/config/SnowfallConfigManager.java b/src/client/java/cinematic/snowstorm/config/SnowfallConfigManager.java
+index 5e5450c..42c4732 100644
+--- a/src/client/java/cinematic/snowstorm/config/SnowfallConfigManager.java
++++ b/src/client/java/cinematic/snowstorm/config/SnowfallConfigManager.java
+@@ -88,6 +88,19 @@ public class SnowfallConfigManager {
+         SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
+         SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
+         SnowfallConfig.REALISTIC_SNOW = configData.realisticSnow;
++        SnowfallConfig.ENABLE_WIND_GUSTS = configData.enableWindGusts;
++        SnowfallConfig.GUST_STRENGTH = configData.gustStrength;
++        SnowfallConfig.GUST_PERIOD_SECONDS = configData.gustPeriodSeconds;
++        SnowfallConfig.ENABLE_SPEED_STREAKS = configData.enableSpeedStreaks;
++        SnowfallConfig.STREAK_SPEED_THRESHOLD = configData.streakSpeedThreshold;
++        SnowfallConfig.STREAK_DENSITY = configData.streakDensity;
++        SnowfallConfig.STREAK_LENGTH = configData.streakLength;
++        SnowfallConfig.STREAK_CENTER_CLEARANCE = configData.streakCenterClearance;
++        SnowfallConfig.ENABLE_FROST_BREATH = configData.enableFrostBreath;
++        SnowfallConfig.BREATH_INTERVAL_SECONDS = configData.breathIntervalSeconds;
++        SnowfallConfig.BREATH_SIZE = configData.breathSize;
++        SnowfallConfig.BREATH_INTENSITY = configData.breathIntensity;
++        SnowfallConfig.BREATH_FIRST_PERSON = configData.breathFirstPerson;
+         sanitize();
+     }
+ 
+@@ -103,6 +116,21 @@ public class SnowfallConfigManager {
+         SnowfallConfig.SPAWN_INTERVAL = Math.max(1, SnowfallConfig.SPAWN_INTERVAL);
+         SnowfallConfig.MAX_PARTICLE_COUNT = Math.max(0,
+                 Math.min(SnowfallConfig.PARTICLE_QUEUE_CAPACITY, SnowfallConfig.MAX_PARTICLE_COUNT));
++        // Effects: hand-edited values must not break (or flood) the effects.
++        SnowfallConfig.GUST_STRENGTH = clamp(SnowfallConfig.GUST_STRENGTH, 0.0f, 5.0f);
++        SnowfallConfig.GUST_PERIOD_SECONDS = clamp(SnowfallConfig.GUST_PERIOD_SECONDS, 3.0f, 120.0f);
++        SnowfallConfig.STREAK_SPEED_THRESHOLD = clamp(SnowfallConfig.STREAK_SPEED_THRESHOLD, 0.05f, 3.0f);
++        SnowfallConfig.STREAK_DENSITY = clamp(SnowfallConfig.STREAK_DENSITY, 0.0f, 5.0f);
++        SnowfallConfig.STREAK_LENGTH = clamp(SnowfallConfig.STREAK_LENGTH, 0.2f, 5.0f);
++        SnowfallConfig.STREAK_CENTER_CLEARANCE = clamp(SnowfallConfig.STREAK_CENTER_CLEARANCE, 0.0f, 0.9f);
++        SnowfallConfig.BREATH_INTERVAL_SECONDS = clamp(SnowfallConfig.BREATH_INTERVAL_SECONDS, 0.5f, 30.0f);
++        SnowfallConfig.BREATH_SIZE = clamp(SnowfallConfig.BREATH_SIZE, 0.3f, 5.0f);
++        SnowfallConfig.BREATH_INTENSITY = clamp(SnowfallConfig.BREATH_INTENSITY, 0.2f, 3.0f);
++    }
++
++    private static float clamp(float value, float min, float max) {
++        if (Float.isNaN(value)) return min;
++        return Math.max(min, Math.min(max, value));
+     }
+ 
+     /**
+@@ -131,6 +159,19 @@ public class SnowfallConfigManager {
+         configData.enableWeatherSound = SnowfallConfig.ENABLE_WEATHER_SOUND;
+         configData.maxParticleCount = SnowfallConfig.MAX_PARTICLE_COUNT;
+         configData.realisticSnow = SnowfallConfig.REALISTIC_SNOW;
++        configData.enableWindGusts = SnowfallConfig.ENABLE_WIND_GUSTS;
++        configData.gustStrength = SnowfallConfig.GUST_STRENGTH;
++        configData.gustPeriodSeconds = SnowfallConfig.GUST_PERIOD_SECONDS;
++        configData.enableSpeedStreaks = SnowfallConfig.ENABLE_SPEED_STREAKS;
++        configData.streakSpeedThreshold = SnowfallConfig.STREAK_SPEED_THRESHOLD;
++        configData.streakDensity = SnowfallConfig.STREAK_DENSITY;
++        configData.streakLength = SnowfallConfig.STREAK_LENGTH;
++        configData.streakCenterClearance = SnowfallConfig.STREAK_CENTER_CLEARANCE;
++        configData.enableFrostBreath = SnowfallConfig.ENABLE_FROST_BREATH;
++        configData.breathIntervalSeconds = SnowfallConfig.BREATH_INTERVAL_SECONDS;
++        configData.breathSize = SnowfallConfig.BREATH_SIZE;
++        configData.breathIntensity = SnowfallConfig.BREATH_INTENSITY;
++        configData.breathFirstPerson = SnowfallConfig.BREATH_FIRST_PERSON;
+     }
+ 
+     /**
+diff --git a/src/client/java/cinematic/snowstorm/effects/FrostBreath.java b/src/client/java/cinematic/snowstorm/effects/FrostBreath.java
+new file mode 100644
+index 0000000..e6d217a
+--- /dev/null
++++ b/src/client/java/cinematic/snowstorm/effects/FrostBreath.java
+@@ -0,0 +1,70 @@
++package cinematic.snowstorm.effects;
++
++import cinematic.snowstorm.config.SnowfallConfig;
++import cinematic.snowstorm.particle.ParticleTypes;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.player.LocalPlayer;
++import net.minecraft.world.phys.Vec3;
++
++/**
++ * Frost breath: small puffs of vapor at the player's mouth while it is snowing and the player
++ * is outside (open sky, not underwater). Only the local player breathes.
++ */
++public final class FrostBreath {
++    private static final int PUFFS_PER_EXHALE = 3;
++    // Exhale speed in blocks per tick, relative to the player.
++    private static final double EXHALE_SPEED = 0.03;
++    // Share of the player's own motion the vapor starts with (1.0 = moves along with the player).
++    private static final double MOTION_INHERIT = 1.0;
++
++    private static int cooldown;
++    private static int puffsLeft;
++
++    private FrostBreath() {}
++
++    public static void tick(ClientLevel level, LocalPlayer player, boolean snowing) {
++        if (!SnowfallConfig.ENABLE_FROST_BREATH || !snowing || player == null
++                || player.isSpectator() || !player.isAlive() || player.isUnderWater()
++                || !level.canSeeSky(player.blockPosition())) {
++            puffsLeft = 0;
++            return;
++        }
++        if (!SnowfallConfig.BREATH_FIRST_PERSON
++                && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
++            puffsLeft = 0;
++            return;
++        }
++
++        if (puffsLeft > 0) {
++            puffsLeft--;
++            puff(level, player);
++            return;
++        }
++        if (--cooldown <= 0) {
++            double intervalTicks = Math.max(0.5, SnowfallConfig.BREATH_INTERVAL_SECONDS) * 20.0;
++            cooldown = (int) Math.max(5, intervalTicks * (0.8 + level.getRandom().nextDouble() * 0.4));
++            puffsLeft = PUFFS_PER_EXHALE - 1;
++            puff(level, player);
++        }
++    }
++
++    private static void puff(ClientLevel level, LocalPlayer player) {
++        Vec3 eye = player.getEyePosition();
++        Vec3 look = player.getLookAngle();
++        // Real movement during the last tick (not the smoothed value used for snow), so the
++        // vapor follows the actual walking direction: forward, sideways, backward, jumping.
++        double mx = player.getX() - player.xo;
++        double my = player.getY() - player.yo;
++        double mz = player.getZ() - player.zo;
++        // The exhaled air starts with the body's motion plus the exhale itself, then drag and
++        // wind take over in MyBreathParticle (so the puff trails behind a walking player).
++        level.addParticle(ParticleTypes.MY_BREATH,
++                eye.x + look.x * 0.32,
++                eye.y - 0.22 + look.y * 0.10,
++                eye.z + look.z * 0.32,
++                look.x * EXHALE_SPEED + mx * MOTION_INHERIT,
++                look.y * EXHALE_SPEED + 0.006 + my * MOTION_INHERIT,
++                look.z * EXHALE_SPEED + mz * MOTION_INHERIT);
++    }
++}
+diff --git a/src/client/java/cinematic/snowstorm/effects/SpeedStreaks.java b/src/client/java/cinematic/snowstorm/effects/SpeedStreaks.java
+new file mode 100644
+index 0000000..b78c3d5
+--- /dev/null
++++ b/src/client/java/cinematic/snowstorm/effects/SpeedStreaks.java
+@@ -0,0 +1,140 @@
++package cinematic.snowstorm.effects;
++
++import cinematic.snowstorm.config.SnowfallConfig;
++import cinematic.snowstorm.particle.ParticleTypes;
++import cinematic.snowstorm.utils.SnowSpawnManager;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.player.LocalPlayer;
++import net.minecraft.world.phys.Vec3;
++
++/**
++ * Speed streaks: while snowing and the player moves faster than a threshold (elytra, boats,
++ * falling, horses...), stretched streak particles rush past the camera.
++ * Streaks stand still in the world; the player's own motion makes them streak by.
++ */
++public final class SpeedStreaks {
++    // +1: a positive particle roll turns the sprite counter-clockwise on screen.
++    // If streaks lean the wrong way in game, set this to -1.
++    private static final float ROLL_SIGN = 1.0f;
++
++    // Half-size of the spawn area on screen, as a share of the depth (tangent of the half angle).
++    private static final double VIEW_HALF_WIDTH = 0.9;
++    private static final double VIEW_HALF_HEIGHT = 0.6;
++
++    private static final double BASE_RATE = 8.0;   // streaks per tick at density 1.0, full speed
++    private static final int MAX_PER_TICK = 24;
++
++    // Camera basis (right / up / forward) and eye position, refreshed every tick while active.
++    private static double ex, ey, ez;
++    private static double rx, ry, rz;
++    private static double ux, uy, uz;
++    private static double fx, fy, fz;
++    private static double vx, vy, vz;
++    private static boolean hasBasis;
++    private static float accumulator;
++
++    private SpeedStreaks() {}
++
++    public static void tick(ClientLevel level, LocalPlayer player, boolean snowing) {
++        if (!SnowfallConfig.ENABLE_SPEED_STREAKS || !snowing || player == null || player.isSpectator()) {
++            accumulator = 0f;
++            return;
++        }
++        Vec3 vel = SnowSpawnManager.getPlayerVelocity();
++        double speed = vel.length();
++        double threshold = Math.max(0.05, SnowfallConfig.STREAK_SPEED_THRESHOLD);
++        if (speed <= threshold || !level.canSeeSky(player.blockPosition())) {
++            accumulator = 0f;
++            return;
++        }
++
++        Vec3 eye = player.getEyePosition();
++        double yaw = Math.toRadians(player.getYRot());
++        double pitch = Math.toRadians(player.getXRot());
++        ex = eye.x; ey = eye.y; ez = eye.z;
++        fx = -Math.sin(yaw) * Math.cos(pitch);
++        fy = -Math.sin(pitch);
++        fz = Math.cos(yaw) * Math.cos(pitch);
++        rx = -Math.cos(yaw);
++        ry = 0.0;
++        rz = -Math.sin(yaw);
++        // up = right x forward
++        ux = ry * fz - rz * fy;
++        uy = rz * fx - rx * fz;
++        uz = rx * fy - ry * fx;
++        vx = vel.x; vy = vel.y; vz = vel.z;
++        hasBasis = true;
++
++        // 0 at the threshold, 1 at twice the threshold; never fully zero just above it.
++        double factor = Math.min(1.0, (speed - threshold) / threshold);
++        accumulator += (float) (BASE_RATE * Math.max(0.0, SnowfallConfig.STREAK_DENSITY) * (0.25 + 0.75 * factor));
++        int count = (int) accumulator;
++        accumulator -= count;
++        count = Math.min(count, MAX_PER_TICK);
++
++        double clearance = SnowfallConfig.STREAK_CENTER_CLEARANCE;
++        for (int i = 0; i < count; i++) {
++            // A random point inside the view frustum, 2.5..12.5 blocks in front of the camera,
++            // outside the cleared area in the middle of the screen (a few tries, then give up).
++            double d = 0.0, a = 0.0, b = 0.0;
++            boolean found = false;
++            for (int attempt = 0; attempt < 4 && !found; attempt++) {
++                d = 2.5 + level.getRandom().nextDouble() * 10.0;
++                double nx = level.getRandom().nextDouble() * 2.0 - 1.0;
++                double ny = level.getRandom().nextDouble() * 2.0 - 1.0;
++                a = nx * d * VIEW_HALF_WIDTH;
++                b = ny * d * VIEW_HALF_HEIGHT;
++                found = Math.hypot(nx, ny) >= clearance;
++            }
++            if (!found) continue;
++            level.addParticle(ParticleTypes.MY_SNOWSTREAK,
++                    ex + fx * d + rx * a + ux * b,
++                    ey + fy * d + ry * a + uy * b,
++                    ez + fz * d + rz * a + uz * b,
++                    0.0, 0.0, 0.0);
++        }
++    }
++
++    /**
++     * 0..1 visibility from the position on screen: 0 in the cleared middle of the screen,
++     * fading in to 1 over the next 20% of the view radius.
++     */
++    public static float centerFade(double x, double y, double z) {
++        double clearance = SnowfallConfig.STREAK_CENTER_CLEARANCE;
++        if (!hasBasis || clearance <= 0.0) return 1.0f;
++        double qx = x - ex, qy = y - ey, qz = z - ez;
++        double cz = Math.max(0.1, qx * fx + qy * fy + qz * fz);
++        double nx = (qx * rx + qy * ry + qz * rz) / cz / VIEW_HALF_WIDTH;
++        double ny = (qx * ux + qy * uy + qz * uz) / cz / VIEW_HALF_HEIGHT;
++        double t = (Math.hypot(nx, ny) - clearance) / 0.2;
++        return (float) Math.max(0.0, Math.min(1.0, t));
++    }
++
++    /** True once a streak is behind the player's eye (the player has flown past it). */
++    public static boolean isBehind(double x, double y, double z) {
++        if (!hasBasis) return false;
++        return (x - ex) * fx + (y - ey) * fy + (z - ez) * fz < 0.0;
++    }
++
++    /**
++     * Sprite rotation that lines a streak up with the direction it appears to move on screen.
++     * The sprite's long axis is vertical, so 0 = pointing up.
++     */
++    public static float streakRoll(double x, double y, double z) {
++        if (!hasBasis) return 0.0f;
++        double qx = x - ex, qy = y - ey, qz = z - ez;
++        // Point in camera space (x right, y up, z depth).
++        double cx = qx * rx + qy * ry + qz * rz;
++        double cy = qx * ux + qy * uy + qz * uz;
++        double cz = Math.max(0.1, qx * fx + qy * fy + qz * fz);
++        // The world is static, so relative to the camera the point moves with -velocity.
++        double wx = -(vx * rx + vy * ry + vz * rz);
++        double wy = -(vx * ux + vy * uy + vz * uz);
++        double wz = -(vx * fx + vy * fy + vz * fz);
++        // Screen-space velocity of a perspective-projected point (common 1/z^2 factor dropped).
++        double dirX = wx * cz - cx * wz;
++        double dirY = wy * cz - cy * wz;
++        if (dirX * dirX + dirY * dirY < 1.0e-12) return 0.0f;
++        return (float) (ROLL_SIGN * Math.atan2(-dirX, dirY));
++    }
++}
+diff --git a/src/client/java/cinematic/snowstorm/effects/WindGusts.java b/src/client/java/cinematic/snowstorm/effects/WindGusts.java
+new file mode 100644
+index 0000000..972da52
+--- /dev/null
++++ b/src/client/java/cinematic/snowstorm/effects/WindGusts.java
+@@ -0,0 +1,57 @@
++package cinematic.snowstorm.effects;
++
++import cinematic.snowstorm.config.SnowfallConfig;
++
++/**
++ * Wind gusts: a slowly pulsing extra wind vector that is added on top of the configured wind.
++ * The configured WIND_STRENGTH / WIND_ANGLE are never modified (so they are saved untouched);
++ * snow particles just add {@link #getGustX()} / {@link #getGustZ()} to their per-tick movement.
++ */
++public final class WindGusts {
++    // Gust speed in blocks per tick at GUST_STRENGTH = 1.0.
++    private static final double BASE_AMPLITUDE = 0.03;
++    // Fade-in after snow starts / the effect is enabled, so gusts never pop in.
++    private static final int RAMP_TICKS = 60;
++
++    private static double phase;
++    private static int ramp;
++    private static float gustX;
++    private static float gustZ;
++
++    private WindGusts() {}
++
++    public static void tick(boolean snowing) {
++        if (!SnowfallConfig.ENABLE_WIND_GUSTS || !snowing) {
++            gustX = 0f;
++            gustZ = 0f;
++            ramp = 0;
++            return;
++        }
++        if (ramp < RAMP_TICKS) ramp++;
++
++        // Phase accumulates, so changing the period in the menu never makes the gust jump.
++        double periodTicks = Math.max(3.0, SnowfallConfig.GUST_PERIOD_SECONDS) * 20.0;
++        phase += Math.PI * 2.0 / periodTicks;
++        if (phase > Math.PI * 200.0) phase -= Math.PI * 200.0;
++
++        // Two layers with unrelated periods: no obviously repeating pattern.
++        double mix = 0.65 * Math.sin(phase) + 0.35 * Math.sin(phase * 2.7 + 1.3);
++        double gust = Math.max(0.0, mix);
++        gust *= gust; // short sharp gusts with calm in between
++
++        // Gusts also swing a little around the configured wind direction.
++        double angle = Math.toRadians(SnowfallConfig.WIND_ANGLE) + 0.35 * Math.sin(phase * 0.6 + 0.7);
++        double amplitude = BASE_AMPLITUDE * Math.max(0.0, SnowfallConfig.GUST_STRENGTH)
++                * gust * ((double) ramp / RAMP_TICKS);
++        gustX = (float) (Math.cos(angle) * amplitude);
++        gustZ = (float) (Math.sin(angle) * amplitude);
++    }
++
++    public static float getGustX() {
++        return gustX;
++    }
++
++    public static float getGustZ() {
++        return gustZ;
++    }
++}
+diff --git a/src/client/java/cinematic/snowstorm/modMenu/SnowstormModMenuIntegration.java b/src/client/java/cinematic/snowstorm/modMenu/SnowstormModMenuIntegration.java
+index 42c8fb8..6094a80 100644
+--- a/src/client/java/cinematic/snowstorm/modMenu/SnowstormModMenuIntegration.java
++++ b/src/client/java/cinematic/snowstorm/modMenu/SnowstormModMenuIntegration.java
+@@ -249,6 +249,104 @@ public class SnowstormModMenuIntegration implements ModMenuApi {
+                     .setSaveConsumer(val -> SnowfallConfig.ROTATION_SPEED = val)
+                     .build());
+ 
++            // ==== EFFECTS (independent of presets) ====
++            ConfigCategory effects = builder.getOrCreateCategory(Component.literal("Effects"));
++
++            effects.addEntry(entryBuilder.startTextDescription(
++                    Component.literal("§7Extra effects. Presets never change them; each one can be switched off.")
++            ).build());
++
++            effects.addEntry(entryBuilder.startBooleanToggle(
++                            Component.literal("Wind Gusts"), config.enableWindGusts)
++                    .setDefaultValue(true)
++                    .setTooltip(Component.literal("The wind pulses in short gusts on top of the configured wind"))
++                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_WIND_GUSTS = val)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Gust Strength (%)"),
++                            Math.round(config.gustStrength * 100), 0, 300)
++                    .setDefaultValue(100)
++                    .setTooltip(Component.literal("100% = gusts add up to 0.03 blocks per tick"))
++                    .setSaveConsumer(val -> SnowfallConfig.GUST_STRENGTH = val / 100.0f)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Gust Period (seconds)"),
++                            Math.round(config.gustPeriodSeconds), 3, 60)
++                    .setDefaultValue(12)
++                    .setTooltip(Component.literal("Average time between gusts (lower = more frequent)"))
++                    .setSaveConsumer(val -> SnowfallConfig.GUST_PERIOD_SECONDS = val)
++                    .build());
++
++            effects.addEntry(entryBuilder.startBooleanToggle(
++                            Component.literal("Speed Streaks"), config.enableSpeedStreaks)
++                    .setDefaultValue(true)
++                    .setTooltip(Component.literal("Streaks rush past you when moving fast in snowfall (elytra, boats, falling)"))
++                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_SPEED_STREAKS = val)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Streak Speed Threshold (blocks/s)"),
++                            Math.round(config.streakSpeedThreshold * 20), 3, 40)
++                    .setDefaultValue(10)
++                    .setTooltip(Component.literal("Streaks start above this speed. Sprinting is about 6, elytra 30+"))
++                    .setSaveConsumer(val -> SnowfallConfig.STREAK_SPEED_THRESHOLD = val / 20.0f)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Streak Density (%)"),
++                            Math.round(config.streakDensity * 100), 0, 300)
++                    .setDefaultValue(100)
++                    .setTooltip(Component.literal("How many streaks appear"))
++                    .setSaveConsumer(val -> SnowfallConfig.STREAK_DENSITY = val / 100.0f)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Streak Length (%)"),
++                            Math.round(config.streakLength * 100), 30, 300)
++                    .setDefaultValue(100)
++                    .setTooltip(Component.literal("Size of each streak"))
++                    .setSaveConsumer(val -> SnowfallConfig.STREAK_LENGTH = val / 100.0f)
++                    .build());
++
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Streak Center Clearance (%)"),
++                            Math.round(config.streakCenterClearance * 100), 0, 90)
++                    .setDefaultValue(45)
++                    .setTooltip(Component.literal("Keeps the middle of the screen free of streaks (0 = streaks everywhere)"))
++                    .setSaveConsumer(val -> SnowfallConfig.STREAK_CENTER_CLEARANCE = val / 100.0f)
++                    .build());
++
++            effects.addEntry(entryBuilder.startBooleanToggle(
++                            Component.literal("Frost Breath"), config.enableFrostBreath)
++                    .setDefaultValue(true)
++                    .setTooltip(Component.literal("Breath vapor at your mouth while it snows and you are outside"))
++                    .setSaveConsumer(val -> SnowfallConfig.ENABLE_FROST_BREATH = val)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Breath Interval (seconds)"),
++                            Math.round(config.breathIntervalSeconds), 1, 10)
++                    .setDefaultValue(3)
++                    .setTooltip(Component.literal("Time between breaths"))
++                    .setSaveConsumer(val -> SnowfallConfig.BREATH_INTERVAL_SECONDS = val)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Breath Size (%)"),
++                            Math.round(config.breathSize * 100), 30, 400)
++                    .setDefaultValue(100)
++                    .setTooltip(Component.literal("Size of the vapor puffs (100% = default)"))
++                    .setSaveConsumer(val -> SnowfallConfig.BREATH_SIZE = val / 100.0f)
++                    .build());
++            effects.addEntry(entryBuilder.startIntSlider(
++                            Component.literal("Breath Opacity (%)"),
++                            Math.round(config.breathIntensity * 100), 30, 200)
++                    .setDefaultValue(100)
++                    .setTooltip(Component.literal("How visible the vapor is"))
++                    .setSaveConsumer(val -> SnowfallConfig.BREATH_INTENSITY = val / 100.0f)
++                    .build());
++            effects.addEntry(entryBuilder.startBooleanToggle(
++                            Component.literal("Breath In First Person"), config.breathFirstPerson)
++                    .setDefaultValue(true)
++                    .setTooltip(Component.literal("Off: vapor only shows in third person"))
++                    .setSaveConsumer(val -> SnowfallConfig.BREATH_FIRST_PERSON = val)
++                    .build());
++
+             return builder.build();
+         };
+     }
+diff --git a/src/client/java/cinematic/snowstorm/particle/MyBreathParticle.java b/src/client/java/cinematic/snowstorm/particle/MyBreathParticle.java
+new file mode 100644
+index 0000000..260d6e0
+--- /dev/null
++++ b/src/client/java/cinematic/snowstorm/particle/MyBreathParticle.java
+@@ -0,0 +1,98 @@
++package cinematic.snowstorm.particle;
++
++import cinematic.snowstorm.config.SnowfallConfig;
++import cinematic.snowstorm.effects.WindGusts;
++import net.fabricmc.api.EnvType;
++import net.fabricmc.api.Environment;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.particle.Particle;
++import net.minecraft.client.particle.ParticleProvider;
++import net.minecraft.client.particle.SingleQuadParticle;
++import net.minecraft.client.particle.SpriteSet;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++import net.minecraft.core.particles.SimpleParticleType;
++import net.minecraft.util.RandomSource;
++import org.jetbrains.annotations.Nullable;
++
++/**
++ * A puff of frost breath: grows, drifts with the wind and fades out.
++ */
++@Environment(EnvType.CLIENT)
++public class MyBreathParticle extends SingleQuadParticle {
++    private final float startSize;
++    private final float endSize;
++    private final float maxAlpha;
++    private final float rollSpeed;
++
++    protected MyBreathParticle(ClientLevel world, double x, double y, double z,
++                               double vx, double vy, double vz, TextureAtlasSprite sprite) {
++        super(world, x, y, z, vx, vy, vz, sprite);
++        float intensity = Math.max(0.1f, SnowfallConfig.BREATH_INTENSITY); // opacity
++        float size = Math.max(0.1f, SnowfallConfig.BREATH_SIZE);
++        this.xd = vx;
++        this.yd = vy;
++        this.zd = vz;
++        this.hasPhysics = false;
++        this.lifetime = 28 + this.random.nextInt(13);
++        this.startSize = 0.12f * size;
++        this.endSize = (0.45f + this.random.nextFloat() * 0.12f) * size;
++        this.quadSize = this.startSize;
++        this.maxAlpha = Math.min(0.9f, 0.38f * intensity);
++        this.alpha = 0.0f;
++        this.rollSpeed = (this.random.nextFloat() - 0.5f) * 0.04f;
++        this.rCol = 0.92f;
++        this.gCol = 0.96f;
++        this.bCol = 1.0f;
++    }
++
++    @Override
++    public void tick() {
++        this.xo = this.x;
++        this.yo = this.y;
++        this.zo = this.z;
++        this.oRoll = this.roll;
++
++        if (this.age++ >= this.lifetime) {
++            this.remove();
++            return;
++        }
++        float p = (float) this.age / this.lifetime;
++        // Ease-out growth; quick fade-in, slow fade-out.
++        this.quadSize = this.startSize + (this.endSize - this.startSize) * (1.0f - (1.0f - p) * (1.0f - p));
++        this.alpha = this.maxAlpha * (p < 0.15f ? p / 0.15f : 1.0f - (p - 0.15f) / 0.85f);
++
++        // Slow down and drift downwind (base wind + current gust).
++        double windAngle = Math.toRadians(SnowfallConfig.WIND_ANGLE);
++        double wind = Math.max(0.0f, SnowfallConfig.WIND_STRENGTH) * 0.08;
++        this.xd = this.xd * 0.90 + Math.cos(windAngle) * wind + WindGusts.getGustX() * 0.2;
++        this.yd = this.yd * 0.94;
++        this.zd = this.zd * 0.90 + Math.sin(windAngle) * wind + WindGusts.getGustZ() * 0.2;
++        this.move(this.xd, this.yd, this.zd);
++        this.roll += this.rollSpeed;
++    }
++
++    @Override
++    protected Layer getLayer() {
++        return Layer.TRANSLUCENT;
++    }
++
++    @Override
++    protected int getLightCoords(float tint) {
++        return 15728880;
++    }
++
++    @Environment(EnvType.CLIENT)
++    public static class Factory implements ParticleProvider<SimpleParticleType> {
++        private final SpriteSet sprites;
++
++        public Factory(SpriteSet spriteProvider) {
++            this.sprites = spriteProvider;
++        }
++
++        @Nullable
++        @Override
++        public Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
++            return new MyBreathParticle(world, x, y, z, vx, vy, vz, sprites.get(random));
++        }
++    }
++}
+diff --git a/src/client/java/cinematic/snowstorm/particle/MySnowflakeParticle.java b/src/client/java/cinematic/snowstorm/particle/MySnowflakeParticle.java
+index fec7bb7..1c06c2f 100644
+--- a/src/client/java/cinematic/snowstorm/particle/MySnowflakeParticle.java
++++ b/src/client/java/cinematic/snowstorm/particle/MySnowflakeParticle.java
+@@ -2,6 +2,7 @@ package cinematic.snowstorm.particle;
+ 
+ import cinematic.snowstorm.utils.SnowSpawnManager;
+ import cinematic.snowstorm.config.SnowfallConfig;
++import cinematic.snowstorm.effects.WindGusts;
+ import net.fabricmc.api.EnvType;
+ import net.fabricmc.api.Environment;
+ import net.minecraft.client.particle.Particle;
+@@ -129,9 +130,11 @@ public class MySnowflakeParticle extends SingleQuadParticle {
+         float swayOffsetX = sinX * amplitudeX * 0.01f; // Scale down the sway for movement
+         float swayOffsetZ = cosZ * amplitudeZ * 0.01f;
+ 
+-        double moveX = this.xd + playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetX;
++        double moveX = this.xd + playerVel.x * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetX
++                + WindGusts.getGustX();
+         double moveY = this.yd;
+-        double moveZ = this.zd + playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetZ;
++        double moveZ = this.zd + playerVel.z * SnowfallConfig.PLAYER_FOLLOW_STRENGTH + swayOffsetZ
++                + WindGusts.getGustZ();
+ 
+         // Left behind the player (elytra) or far above/below: drop immediately.
+         int phaseTick = this.age + this.phase;
+diff --git a/src/client/java/cinematic/snowstorm/particle/MyStreakParticle.java b/src/client/java/cinematic/snowstorm/particle/MyStreakParticle.java
+new file mode 100644
+index 0000000..3b28609
+--- /dev/null
++++ b/src/client/java/cinematic/snowstorm/particle/MyStreakParticle.java
+@@ -0,0 +1,90 @@
++package cinematic.snowstorm.particle;
++
++import cinematic.snowstorm.config.SnowfallConfig;
++import cinematic.snowstorm.effects.SpeedStreaks;
++import net.fabricmc.api.EnvType;
++import net.fabricmc.api.Environment;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.particle.Particle;
++import net.minecraft.client.particle.ParticleProvider;
++import net.minecraft.client.particle.SingleQuadParticle;
++import net.minecraft.client.particle.SpriteSet;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++import net.minecraft.core.particles.SimpleParticleType;
++import net.minecraft.util.RandomSource;
++import org.jetbrains.annotations.Nullable;
++
++/**
++ * A short-lived, stationary streak (see {@link SpeedStreaks}). Its sprite is a thin vertical
++ * line that is rotated every tick to follow the on-screen direction of motion.
++ */
++@Environment(EnvType.CLIENT)
++public class MyStreakParticle extends SingleQuadParticle {
++    // Ticks of age added per tick once the player is past the streak (1 = normal speed).
++    private static final int BEHIND_AGE_STEP = 2;
++
++    private final float baseAlpha;
++
++    protected MyStreakParticle(ClientLevel world, double x, double y, double z, TextureAtlasSprite sprite) {
++        super(world, x, y, z, 0.0, 0.0, 0.0, sprite);
++        this.xd = 0.0;
++        this.yd = 0.0;
++        this.zd = 0.0;
++        this.hasPhysics = false;
++        this.lifetime = 6 + this.random.nextInt(5);
++        this.quadSize = (0.7f + this.random.nextFloat() * 0.6f) * Math.max(0.1f, SnowfallConfig.STREAK_LENGTH);
++        this.baseAlpha = 0.35f + this.random.nextFloat() * 0.20f;
++        this.alpha = 0.0f;
++        this.rCol = 1.0f;
++        this.gCol = 1.0f;
++        this.bCol = 1.0f;
++        this.roll = SpeedStreaks.streakRoll(x, y, z);
++        this.oRoll = this.roll;
++    }
++
++    @Override
++    public void tick() {
++        this.xo = this.x;
++        this.yo = this.y;
++        this.zo = this.z;
++        this.oRoll = this.roll;
++
++        if (this.age >= this.lifetime) {
++            this.remove();
++            return;
++        }
++        // Streaks the player has already flown past age twice as fast, so they vanish sooner.
++        this.age += SpeedStreaks.isBehind(this.x, this.y, this.z) ? BEHIND_AGE_STEP : 1;
++        float t = Math.min(1.0f, (float) this.age / this.lifetime);
++
++        // Fade in and out over the short lifetime; invisible in the cleared middle of the screen.
++        this.alpha = this.baseAlpha * (float) Math.sin(Math.PI * t)
++                * SpeedStreaks.centerFade(this.x, this.y, this.z);
++        this.roll = SpeedStreaks.streakRoll(this.x, this.y, this.z);
++    }
++
++    @Override
++    protected Layer getLayer() {
++        return Layer.TRANSLUCENT;
++    }
++
++    @Override
++    protected int getLightCoords(float tint) {
++        return 15728880; // full brightness, like the snowflakes
++    }
++
++    @Environment(EnvType.CLIENT)
++    public static class Factory implements ParticleProvider<SimpleParticleType> {
++        private final SpriteSet sprites;
++
++        public Factory(SpriteSet spriteProvider) {
++            this.sprites = spriteProvider;
++        }
++
++        @Nullable
++        @Override
++        public Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
++            return new MyStreakParticle(world, x, y, z, sprites.get(random));
++        }
++    }
++}
+diff --git a/src/client/java/cinematic/snowstorm/particle/ParticleTypes.java b/src/client/java/cinematic/snowstorm/particle/ParticleTypes.java
+index 0e97b32..621566d 100644
+--- a/src/client/java/cinematic/snowstorm/particle/ParticleTypes.java
++++ b/src/client/java/cinematic/snowstorm/particle/ParticleTypes.java
+@@ -14,6 +14,10 @@ public class ParticleTypes {
+     // Soft, photo-realistic snow particle (used when "Realistic Snow" is enabled)
+     public static final SimpleParticleType MY_SNOWFLAKE_REALISTIC = FabricParticleTypes.simple(true);
+ 
++    // Speed streaks and frost breath (see the effects package)
++    public static final SimpleParticleType MY_SNOWSTREAK = FabricParticleTypes.simple(true);
++    public static final SimpleParticleType MY_BREATH = FabricParticleTypes.simple(true);
++
+     public static void register() {
+         Registry.register(BuiltInRegistries.PARTICLE_TYPE,
+                 Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowflake"),
+@@ -21,6 +25,12 @@ public class ParticleTypes {
+         Registry.register(BuiltInRegistries.PARTICLE_TYPE,
+                 Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowflake_realistic"),
+                 MY_SNOWFLAKE_REALISTIC);
++        Registry.register(BuiltInRegistries.PARTICLE_TYPE,
++                Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowstreak"),
++                MY_SNOWSTREAK);
++        Registry.register(BuiltInRegistries.PARTICLE_TYPE,
++                Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_breath"),
++                MY_BREATH);
+     }
+ 
+     /**
+diff --git a/src/client/java/cinematic/snowstorm/utils/SnowSpawnManager.java b/src/client/java/cinematic/snowstorm/utils/SnowSpawnManager.java
+index 679c104..3ef2ab5 100644
+--- a/src/client/java/cinematic/snowstorm/utils/SnowSpawnManager.java
++++ b/src/client/java/cinematic/snowstorm/utils/SnowSpawnManager.java
+@@ -1,6 +1,9 @@
+ package cinematic.snowstorm.utils;
+ 
+ import cinematic.snowstorm.config.SnowfallConfig;
++import cinematic.snowstorm.effects.FrostBreath;
++import cinematic.snowstorm.effects.SpeedStreaks;
++import cinematic.snowstorm.effects.WindGusts;
+ import cinematic.snowstorm.fog.WeatherFogHandler;
+ import cinematic.snowstorm.particle.MySnowflakeParticle;
+ import cinematic.snowstorm.particle.ParticleTypes;
+@@ -140,6 +143,11 @@ public class SnowSpawnManager {
+ 
+             boolean shouldSnow = world.isRaining() || world.isThundering();
+             isSnowWeatherActive = shouldSnow;
++
++            // Optional effects; each one returns immediately when its toggle is off.
++            WindGusts.tick(shouldSnow);
++            SpeedStreaks.tick(world, mc.player, shouldSnow);
++            FrostBreath.tick(world, mc.player, shouldSnow);
+             if (!shouldSnow) {
+                 wasSnowing = false;
+                 spawnAccumulator = 0f;
+diff --git a/src/main/resources/assets/cinematic-snowstorm/particles/my_breath.json b/src/main/resources/assets/cinematic-snowstorm/particles/my_breath.json
+new file mode 100644
+index 0000000..e17c849
+--- /dev/null
++++ b/src/main/resources/assets/cinematic-snowstorm/particles/my_breath.json
+@@ -0,0 +1,5 @@
++{
++  "textures": [
++    "cinematic-snowstorm:breath"
++  ]
++}
+diff --git a/src/main/resources/assets/cinematic-snowstorm/particles/my_snowstreak.json b/src/main/resources/assets/cinematic-snowstorm/particles/my_snowstreak.json
+new file mode 100644
+index 0000000..b695a6d
+--- /dev/null
++++ b/src/main/resources/assets/cinematic-snowstorm/particles/my_snowstreak.json
+@@ -0,0 +1,5 @@
++{
++  "textures": [
++    "cinematic-snowstorm:streak"
++  ]
++}
+diff --git a/src/main/resources/assets/cinematic-snowstorm/textures/particle/breath.png b/src/main/resources/assets/cinematic-snowstorm/textures/particle/breath.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..2305bcb4d1dd0ce785f58caa0c282ca957bcdb03
+GIT binary patch
+literal 563
+zcmV-30?hr1P)<h;3K|Lk000e1NJLTq001BW001Be1^@s6b9#F80005{Nkl<Zc%1E*
+zZEurc6o#*d)?sI+%ih$u|NpQ2WMYhFTRRG)l!715{e)93Yte1phd#*(kO#Q0^GX}q
+zwq>6y*{k{i-~jL%0LK6DOaR^hBcKJA!0M#{0&onx15yDz06DPG^|Jy@fK%X15CND2
+zQ{Wz`uxK>So(v!bPJnaZlOPfS{1QY7)Ut)M`hNg|6F&nkfiJ*E;0VaHH^U-OVQI;n
+z<yfr@21u~5znAzG=KW{j8cV|*_#n}R#HPTF-rr&oXxLD!j{yX_oL|c0C?4$;C<Ipt
+z=9aEN7XmAEJ_z7Q9!7xZbqxQ76TXnhjf4v<C8;z<a_Fzs2N1NE3gSc{=MuYOy%S0u
+zb8JS8vGi>e^{a0Z2JMZUjsG}$fffsI?T)p(UePln`XbQE8uy|K%VUY<b)x;LfO0JK
+zh4xF`zoaX|K>%JfPP-gyt7Caz0pHwvW^_X-r|XQt0AOK@Jw2DrB%bK}4*073CVD2r
+zigBuE9<V43N<jqh-p?eG=z0bG5I_dJ#X6^U_utb^$BpYTfJWqTs-+Syu}Uw1?^p^l
+z?ZtZ{e5`}skJPqFSPLMw)l#0d^6n=#c%p}a_0HJ(b=(HfU>*dW7g)vDSbj6si)$xQ
+zzrv3H3w-~BMPlQ}W$4-!;MvyRe-j=64gh-x_zl_HzXH4akbnRH002ovPDHLkV1f}r
+B13~}*
+
+literal 0
+HcmV?d00001
+
+diff --git a/src/main/resources/assets/cinematic-snowstorm/textures/particle/streak.png b/src/main/resources/assets/cinematic-snowstorm/textures/particle/streak.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..71a62d68ac17634adaa7a05f0d91a1615e93f6ca
+GIT binary patch
+literal 317
+zcmV-D0mA-?P)<h;3K|Lk000e1NJLTq001BW001Be1^@s6b9#F800035Nkl<Zc$~$T
+z%L>9U5JgYgT0|5S{r@jiEGQy<7#B|H&|POFxlnr3Mdo;?Nn?mH;!rL3$vQ#fDBb`&
+z@h@P^4X^=@;s+~0Wh@>9;3U^Zo@E07Xo0g_t#uM>3xX8AD3}1Oexv^luv(s%Fts3g
+zle`INfb0pRRgk<%o&@whU|xpao$%nD#{*CUd*!nN1Sz^z0NGnmF)u&!j_LtODI{-_
+z=Uea>c@l`s2NCnB#slyHdgZeMq+kD*@q{r2PXZJ0RNf>Hzz95)&k7LvodY`=4-{y@
+z0Nj-~$&)}2++^HSAb}--N!|pm3Lt9&#Q{>$qAggif+EYXQ{JRd`tSJ{YnelYL3Q=w
+P00000NkvXXu0mjfi{^d*
+
+literal 0
+HcmV?d00001
+
