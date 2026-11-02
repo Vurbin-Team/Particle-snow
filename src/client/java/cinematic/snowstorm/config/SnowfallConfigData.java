@@ -36,4 +36,21 @@ public class SnowfallConfigData {
 
     // Texture Settings
     public boolean realisticSnow = false;
+
+    // Effects (independent of presets)
+    public boolean enableWindGusts = true;
+    public float gustStrength = 1.0f;
+    public float gustPeriodSeconds = 12.0f;
+
+    public boolean enableSpeedStreaks = true;
+    public float streakSpeedThreshold = 0.5f;
+    public float streakDensity = 1.0f;
+    public float streakLength = 1.0f;
+    public float streakCenterClearance = 0.45f;
+
+    public boolean enableFrostBreath = true;
+    public float breathIntervalSeconds = 3.0f;
+    public float breathSize = 1.0f;
+    public float breathIntensity = 1.0f;
+    public boolean breathFirstPerson = true;
 }

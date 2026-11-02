@@ -14,6 +14,10 @@ public class ParticleTypes {
     // Soft, photo-realistic snow particle (used when "Realistic Snow" is enabled)
     public static final SimpleParticleType MY_SNOWFLAKE_REALISTIC = FabricParticleTypes.simple(true);
 
+    // Speed streaks and frost breath (see the effects package)
+    public static final SimpleParticleType MY_SNOWSTREAK = FabricParticleTypes.simple(true);
+    public static final SimpleParticleType MY_BREATH = FabricParticleTypes.simple(true);
+
     public static void register() {
         Registry.register(BuiltInRegistries.PARTICLE_TYPE,
                 Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowflake"),
@@ -21,6 +25,12 @@ public class ParticleTypes {
         Registry.register(BuiltInRegistries.PARTICLE_TYPE,
                 Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowflake_realistic"),
                 MY_SNOWFLAKE_REALISTIC);
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE,
+                Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_snowstreak"),
+                MY_SNOWSTREAK);
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE,
+                Identifier.fromNamespaceAndPath("cinematic-snowstorm", "my_breath"),
+                MY_BREATH);
     }
 
     /**
