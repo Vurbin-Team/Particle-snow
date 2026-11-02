@@ -9,6 +9,7 @@ import cinematic.snowstorm.particle.MySnowflakeParticle;
 import cinematic.snowstorm.particle.ParticleTypes;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,6 +42,12 @@ public class SnowSpawnManager {
     private static final double PREFILL_BELOW = 16.0;
     private static int prefillTicksLeft = 0;
 
+    // Fast movement: flakes spawned on the plane above the player need ~SPAWN_HEIGHT/fall ticks to
+    // reach eye level, so the area the player flies into is empty and the flakes spawned above the
+    // path form a line behind. The strip swept this tick is filled over the whole column instead.
+    private static final int MAX_FILL_PER_TICK = 600;
+    private static float fillAccumulator = 0f;
+
     // Live snow particles (MAX_PARTICLE_COUNT is enforced here, not by queue eviction).
     private static int liveCount = 0;
     private static int idleTicks = 0;
@@ -66,6 +73,7 @@ public class SnowSpawnManager {
                 isSnowWeatherActive = false;
                 wasSnowing = false;
                 spawnAccumulator = 0f;
+                fillAccumulator = 0f;
                 prefillTicksLeft = 0;
                 liveCount = 0;
                 cullRadiusSq = Double.MAX_VALUE;
@@ -150,6 +158,7 @@ public class SnowSpawnManager {
             if (!shouldSnow) {
                 wasSnowing = false;
                 spawnAccumulator = 0f;
+                fillAccumulator = 0f;
                 prefillTicksLeft = 0;
                 if (++idleTicks > ALL_DEAD_AFTER_TICKS) {
                     liveCount = 0; // every flake is dead by now; drops any drift in the counter
@@ -205,6 +214,40 @@ public class SnowSpawnManager {
 
                 // Skip points in unloaded chunks and points inside terrain / under roofs
                 // (caves, buildings): such a flake would die on its first tick anyway.
+                int bx = (int) Math.floor(dx);
+                int bz = (int) Math.floor(dz);
+                if (!world.hasChunkAt(bx, bz)) continue;
+                if (dy <= world.getHeight(Heightmap.Types.MOTION_BLOCKING, bx, bz)) continue;
+
+                world.addParticle(snowType, true, true, dx, dy, dz, 0, 0, 0);
+            }
+
+            // Same flake density as a standing player's column, in the strip the player sweeps per tick.
+            double vRel = speedXZ * (1.0 - Mth.clamp(SnowfallConfig.PLAYER_FOLLOW_STRENGTH, 0.0f, 1.0f));
+            double columnTicks = (SPAWN_HEIGHT_ABOVE + PREFILL_BELOW) / averageFallSpeed;
+            double nearW = (1 - FAR_SPAWN_CHANCE) / Math.max(1, nearRadius);
+            double farW = FAR_SPAWN_CHANCE / Math.max(1, farRadius);
+            fillAccumulator += (float) Math.min(MAX_FILL_PER_TICK,
+                    perTickRate * columnTicks * 2.0 * vRel / Math.PI * (nearW + farW));
+            int fillCount = (int) fillAccumulator;
+            fillAccumulator -= fillCount;
+            double dirX = speedXZ > 1.0E-6 ? playerVelocity.x / speedXZ : 1.0;
+            double dirZ = speedXZ > 1.0E-6 ? playerVelocity.z / speedXZ : 0.0;
+
+            for (int i = 0; i < fillCount; i++) {
+                if (liveCount >= maxCount) break;
+
+                // Leading edge of the spawn disk: w across the movement, s along it (s spans the
+                // distance the disk moved this tick), random height over the whole column.
+                double f = world.getRandom().nextDouble() * (SPAWN_HEIGHT_ABOVE + PREFILL_BELOW) / SPAWN_HEIGHT_ABOVE;
+                double r = world.getRandom().nextDouble() < farW / (nearW + farW) ? farRadius : nearRadius;
+                double w = (world.getRandom().nextDouble() * 2 - 1) * r;
+                double s = Math.sqrt(r * r - w * w) + world.getRandom().nextDouble() * vRel;
+
+                double dx = px - windDrift.x * (1 - f) + dirX * s - dirZ * w;
+                double dy = py + SPAWN_HEIGHT_ABOVE * (1 - f);
+                double dz = pz - windDrift.z * (1 - f) + dirZ * s + dirX * w;
+
                 int bx = (int) Math.floor(dx);
                 int bz = (int) Math.floor(dz);
                 if (!world.hasChunkAt(bx, bz)) continue;

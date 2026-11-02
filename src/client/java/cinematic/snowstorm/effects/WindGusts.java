@@ -17,6 +17,8 @@ public final class WindGusts {
     private static int ramp;
     private static float gustX;
     private static float gustZ;
+    // 0..1: how strong the current gust is, independent of GUST_STRENGTH. Drives the wind sound.
+    private static float intensity;
 
     private WindGusts() {}
 
@@ -24,6 +26,7 @@ public final class WindGusts {
         if (!SnowfallConfig.ENABLE_WIND_GUSTS || !snowing) {
             gustX = 0f;
             gustZ = 0f;
+            intensity = 0f;
             ramp = 0;
             return;
         }
@@ -41,6 +44,7 @@ public final class WindGusts {
 
         // Gusts also swing a little around the configured wind direction.
         double angle = Math.toRadians(SnowfallConfig.WIND_ANGLE) + 0.35 * Math.sin(phase * 0.6 + 0.7);
+        intensity = (float) (gust * ramp / RAMP_TICKS);
         double amplitude = BASE_AMPLITUDE * Math.max(0.0, SnowfallConfig.GUST_STRENGTH)
                 * gust * ((double) ramp / RAMP_TICKS);
         gustX = (float) (Math.cos(angle) * amplitude);
@@ -53,5 +57,10 @@ public final class WindGusts {
 
     public static float getGustZ() {
         return gustZ;
+    }
+
+    /** Wind sound volume multiplier: 0.7 in a lull, 1.0 at the peak of a gust, 1.0 with gusts off. */
+    public static float getSoundVolumeFactor() {
+        return SnowfallConfig.ENABLE_WIND_GUSTS ? 0.7f + 0.3f * intensity : 1.0f;
     }
 }
