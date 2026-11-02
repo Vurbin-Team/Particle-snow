@@ -1,6 +1,7 @@
 package cinematic.snowstorm.sounds;
 
 import cinematic.snowstorm.config.SnowfallConfig;
+import cinematic.snowstorm.effects.WindGusts;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
@@ -95,6 +96,7 @@ public class AdvancedWeatherSoundManager {
             {
                 targetVolume = canSeeSky ? 1.0f : 0.15f;
             }
+            targetVolume *= WindGusts.getSoundVolumeFactor();
 
             // Плавно приближаем текущую громкость к целевой
             this.volume += (targetVolume - this.volume) * SMOOTHING_FACTOR;
