@@ -86,6 +86,8 @@ public class SnowfallConfigManager {
         SnowfallConfig.WIND_ANGLE = normalizeAngle(configData.windAngle);
         SnowfallConfig.ROTATION_SPEED = configData.rotationSpeed;
         SnowfallConfig.ENABLE_WEATHER_SOUND = configData.enableWeatherSound;
+        SnowfallConfig.COLD_BIOMES_ONLY = configData.coldBiomesOnly;
+        SnowfallConfig.DISABLE_LIGHTNING = configData.disableLightning;
         SnowfallConfig.MAX_PARTICLE_COUNT = configData.maxParticleCount;
         SnowfallConfig.REALISTIC_SNOW = configData.realisticSnow;
         SnowfallConfig.ENABLE_WIND_GUSTS = configData.enableWindGusts;
@@ -157,6 +159,8 @@ public class SnowfallConfigManager {
         configData.windAngle = normalizeAngle(SnowfallConfig.WIND_ANGLE);
         configData.rotationSpeed = SnowfallConfig.ROTATION_SPEED;
         configData.enableWeatherSound = SnowfallConfig.ENABLE_WEATHER_SOUND;
+        configData.coldBiomesOnly = SnowfallConfig.COLD_BIOMES_ONLY;
+        configData.disableLightning = SnowfallConfig.DISABLE_LIGHTNING;
         configData.maxParticleCount = SnowfallConfig.MAX_PARTICLE_COUNT;
         configData.realisticSnow = SnowfallConfig.REALISTIC_SNOW;
         configData.enableWindGusts = SnowfallConfig.ENABLE_WIND_GUSTS;

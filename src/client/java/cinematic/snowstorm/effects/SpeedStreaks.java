@@ -3,6 +3,8 @@ package cinematic.snowstorm.effects;
 import cinematic.snowstorm.config.SnowfallConfig;
 import cinematic.snowstorm.particle.ParticleTypes;
 import cinematic.snowstorm.utils.SnowSpawnManager;
+import net.minecraft.client.CameraType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.phys.Vec3;
@@ -11,6 +13,10 @@ import net.minecraft.world.phys.Vec3;
  * Speed streaks: while snowing and the player moves faster than a threshold (elytra, boats,
  * falling, horses...), stretched streak particles rush past the camera.
  * Streaks stand still in the world; the player's own motion makes them streak by.
+ * Everything is placed relative to the render camera (not the player's eyes), so it also works in
+ * third person: there the camera is behind or in front of the player and looks the other way.
+ * The camera is rebuilt from the player and the camera type instead of read from GameRenderer,
+ * because that accessor was renamed between versions (getMainCamera -> mainCamera in 26.2).
  */
 public final class SpeedStreaks {
     // +1: a positive particle roll turns the sprite counter-clockwise on screen.
@@ -20,6 +26,9 @@ public final class SpeedStreaks {
     // Half-size of the spawn area on screen, as a share of the depth (tangent of the half angle).
     private static final double VIEW_HALF_WIDTH = 0.9;
     private static final double VIEW_HALF_HEIGHT = 0.6;
+
+    // Vanilla third-person camera distance. Wall clipping is ignored: a few blocks off is invisible here.
+    private static final double THIRD_PERSON_DISTANCE = 4.0;
 
     private static final double BASE_RATE = 8.0;   // streaks per tick at density 1.0, full speed
     private static final int MAX_PER_TICK = 24;
@@ -48,10 +57,11 @@ public final class SpeedStreaks {
             return;
         }
 
-        Vec3 eye = player.getEyePosition();
-        double yaw = Math.toRadians(player.getYRot());
-        double pitch = Math.toRadians(player.getXRot());
-        ex = eye.x; ey = eye.y; ez = eye.z;
+        // Front view looks back at the player: yaw + 180, pitch inverted. Otherwise same as the player.
+        CameraType cameraType = Minecraft.getInstance().options.getCameraType();
+        boolean front = cameraType == CameraType.THIRD_PERSON_FRONT;
+        double yaw = Math.toRadians(player.getYRot() + (front ? 180.0 : 0.0));
+        double pitch = Math.toRadians(front ? -player.getXRot() : player.getXRot());
         fx = -Math.sin(yaw) * Math.cos(pitch);
         fy = -Math.sin(pitch);
         fz = Math.cos(yaw) * Math.cos(pitch);
@@ -62,6 +72,10 @@ public final class SpeedStreaks {
         ux = ry * fz - rz * fy;
         uy = rz * fx - rx * fz;
         uz = rx * fy - ry * fx;
+        // Third person: the camera sits that far back along its own view direction.
+        Vec3 eye = player.getEyePosition();
+        double back = cameraType.isFirstPerson() ? 0.0 : THIRD_PERSON_DISTANCE;
+        ex = eye.x - fx * back; ey = eye.y - fy * back; ez = eye.z - fz * back;
         vx = vel.x; vy = vel.y; vz = vel.z;
         hasBasis = true;
 

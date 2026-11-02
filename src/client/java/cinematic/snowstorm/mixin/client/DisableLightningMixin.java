@@ -1,5 +1,6 @@
 package cinematic.snowstorm.mixin.client;
 
+import cinematic.snowstorm.config.SnowfallConfig;
 import net.minecraft.client.renderer.entity.LightningBoltRenderer;
 import net.minecraft.client.renderer.entity.state.LightningBoltRenderState;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -21,6 +22,6 @@ public class DisableLightningMixin {
             CameraRenderState cameraRenderState,
             CallbackInfo ci
     ) {
-        ci.cancel();
+        if (SnowfallConfig.DISABLE_LIGHTNING) ci.cancel();
     }
 }

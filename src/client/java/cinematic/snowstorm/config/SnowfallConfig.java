@@ -12,6 +12,16 @@ public class SnowfallConfig {
     // MAX_PARTICLE_COUNT is enforced by SnowSpawnManager and may change at runtime up to this value.
     public static final int PARTICLE_QUEUE_CAPACITY = 100_000;
 
+    // ==== WEATHER ====
+
+    // false: snow wherever vanilla has rain or snow (never in deserts, Nether, End).
+    // true: only in cold biomes. Rain in warm biomes is then not drawn at all,
+    // because the mod disables the vanilla weather renderer.
+    public static boolean COLD_BIOMES_ONLY = false;
+
+    // true: lightning bolts are not drawn (the storm has no flashes).
+    public static boolean DISABLE_LIGHTNING = true;
+
     // ==== TEXTURE SETTINGS ====
 
     // Use soft, photo-realistic snow textures instead of the stylized pixel-art ones
